@@ -5,6 +5,7 @@ import re
 import time
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from scipy.stats import kendalltau
 
@@ -18,6 +19,51 @@ experiment_name = "LAW"
 
 delimiters = "_", "/", "\\", "."
 regex_pattern = '|'.join(map(re.escape, delimiters))
+
+
+def kendall_tau(ranking_ids_1, ranking_ids_2):
+    """
+    Calculates the Kendall's Tau distance between two rankings
+    :param ranking_ids_1: list of positive integers → ranking of items represented by corresponding ID numbers
+    :param ranking_ids_2: list of positive integers → re-ranking of ranking_ids_1
+    :return: float value → Kendall's Tau distance
+    """
+
+    # check if the rankings are of the same length
+    if len(ranking_ids_1) != len(ranking_ids_2):
+        return None, "X and Y are not the same length"
+    # number of concordant pairs
+    c = 0
+
+    n = len(ranking_ids_1)
+
+    for i in range(n - 1):
+        # Check if the i-th element of ranking_ids_2 is in ranking_ids_1
+        if ranking_ids_2[i] in ranking_ids_1:
+            # Calculate position in ranking_ids_1 of the i-th element of ranking_ids_2
+            index1 = ranking_ids_1.index(ranking_ids_2[i])
+            for j in range(i + 1, n):
+                # Check if the j-th element of ranking_ids_2 is in ranking_ids_1
+                if ranking_ids_2[j] in ranking_ids_1:
+                    # Compare positions in ranking_ids_1 of the i-th and j-th elements of ranking_ids_2
+                    if ranking_ids_1.index(ranking_ids_2[j]) > index1:
+                        c += 1  # ranking_ids_2[i] and ranking_ids_2[j] are a concordance
+
+    # for i in range(n - 1):
+    #     # calculate position in ranking_ids_1 of the i-th element of ranking_ids_2
+    #     index1 = np.where(ranking_ids_1 == ranking_ids_2[i])[0][0]
+    #     for j in range(i + 1, n):
+    #         # compare positions in ranking_ids_1 of the ith and jth elements of ranking_ids_2
+    #         if np.where(ranking_ids_1 == ranking_ids_2[j])[0][0] > index1:
+    #             c += 1  # ranking_ids_2[i] and ranking_ids_2[j] are a concordance pair
+
+    # total pairs of elements in one ranking is n choose 2
+    total_pairs = n * (n - 1) / 2
+
+    # calculate number of discordant pairs, i.e. non-concordant pairs
+    d = total_pairs - c
+
+    return (c - d) / total_pairs, None
 
 
 def kT(X, Y):
@@ -126,7 +172,7 @@ def CalculateResultMetrics(shot=0):
             gt_unique_ids = [int(id) for id in gt_unique_ids]
             inferred_unique_ids = [int(id) for id in inferred_unique_ids]
 
-            kT_corr = kT(gt_unique_ids, inferred_unique_ids)
+            kT_corr = kendall_tau(gt_unique_ids, inferred_unique_ids)
             print(gt_unique_ids, inferred_unique_ids)
 
             print("Kendall Tau correlation coefficient for sample", sample_number, ":", kT_corr)
