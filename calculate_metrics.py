@@ -2,26 +2,22 @@ import csv
 import json
 import os
 import re
+import time
 from pathlib import Path
 
 import pandas as pd
 from scipy.stats import kendalltau
 
+with open('settings.json', 'r') as f:
+    settings = json.load(f)
+
+start = time.time()
+
+sample_size = settings["GENERAL_SETTINGS"]["sample_size"]
 experiment_name = "LAW"
 
 delimiters = "_", "/", "\\", "."
 regex_pattern = '|'.join(map(re.escape, delimiters))
-
-
-# def get_files(directory):
-#     temp = []
-#     for dirpath, dirnames, filenames in os.walk(directory):
-#         for file in filenames:
-#             match = re.search(experiment_name, file)
-#             if match:
-#                 # temp.append(directory + '/' + file)
-#                 temp.append(os.path.join(dirpath, file))
-#     return temp
 
 
 def kT(X, Y):
@@ -90,7 +86,7 @@ def CalculateResultMetrics(shot=0):
     :return: Kendall Tau correlation coefficient
     """
     # read all txt files in the data folder
-    path = 'Llama3Output/LAW/shot_' + str(shot) + '/'
+    path = 'Llama3Output/LAW/size_' + sample_size + '/shot_' + str(shot) + '/'
     ranked_folder = os.listdir(path)
 
     # list all txt_files in the directory
@@ -98,7 +94,8 @@ def CalculateResultMetrics(shot=0):
     # count files without proper json
     count_err = 0
     # Open the CSV file outside the loop to ensure it's opened only once
-    results_path = Path("../LLMFairRank/Results/LAW/shot_" + str(shot) + "/")
+    results_path = Path("../LLMFairRank/Results/LAW/size_" + sample_size + "/shot_" + str(shot) + "/")
+
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     metrics_path = results_path / "metrics.csv"
@@ -110,19 +107,27 @@ def CalculateResultMetrics(shot=0):
         # for each file, read the inferred ranking and the ground truth ranking
         for file in inferred_files:
             file_path = path + file
+            print(file_path)
             ranked_df = collect_json_after_second_occurrence(file_path)
             if ranked_df is None:
                 count_err += 1
                 continue
 
             sample_number = re.split(regex_pattern, file)[1]
-            ground_truth_file = './Datasets/' + experiment_name + '/Splits/test_' + sample_number + '.csv'
+            print("Sample number:", sample_number)
+            ground_truth_file = './Datasets/' + experiment_name + '/Splits/size_' + sample_size + '/test_' + sample_number + '.csv'
             ground_truth_df = pd.read_csv(ground_truth_file)
             ground_truth_df = ground_truth_df.sort_values(by='ZFYA', ascending=False)
 
             gt_unique_ids = ground_truth_df["unique_id"].tolist()
             inferred_unique_ids = ranked_df["student_id"].tolist()
+
+            # Convert items in the lists to floats
+            gt_unique_ids = [int(id) for id in gt_unique_ids]
+            inferred_unique_ids = [int(id) for id in inferred_unique_ids]
+
             kT_corr = kT(gt_unique_ids, inferred_unique_ids)
+            print(gt_unique_ids, inferred_unique_ids)
 
             print("Kendall Tau correlation coefficient for sample", sample_number, ":", kT_corr)
 
@@ -133,3 +138,8 @@ def CalculateResultMetrics(shot=0):
 CalculateResultMetrics()
 CalculateResultMetrics(1)
 CalculateResultMetrics(2)
+
+# kendall tau correlation test
+
+end = time.time()
+print("time taken = ", end - start)
