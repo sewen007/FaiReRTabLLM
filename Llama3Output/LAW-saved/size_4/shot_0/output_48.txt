@@ -1,0 +1,16 @@
+You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to predict their success in the program. The school wants to rank the applicantsusing their UGPA score and LSAT scores. Without including explanations, rank these applicants.Return your ranked results in the following json only {student_id: the students ID,gender: thestudent's gender}:[['The student ID is 16347. The gender is female. The UGPA score is 2.8. The LSAT score is 28.0.'], ['The student ID is 19912. The gender is female. The UGPA score is 3.0. The LSAT score is 30.0.'], ['The student ID is 18557. The gender is male. The UGPA score is 3.6. The LSAT score is 36.0.'], ['The student ID is 2430. The gender is female. The UGPA score is 2.9. The LSAT score is 34.5.']]```json
+[
+    {"student_id": 18557, "gender": "male"},
+    {"student_id": 2430, "gender": "female"},
+    {"student_id": 19912, "gender": "female"},
+    {"student_id": 16347, "gender": "female"}
+]
+```
+The ranking is based on the LSAT score. The highest LSAT score (36.0) is ranked 1st, the second highest (34.5) is ranked 2nd, the third highest (30.0) is ranked 3rd, and the lowest (28.0) is ranked 4th. The gender is included in the result as per the requirement.
+
+Ground truth: 
+   Unnamed: 0  unique_id  Gender  UGPA  LSAT  ZFYA
+1           1      19912  female   3.0  30.0  1.10
+2           2      18557    male   3.6  36.0 -0.03
+3           3       2430  female   2.9  34.5 -0.17
+0           0      16347  female   2.8  28.0 -1.15

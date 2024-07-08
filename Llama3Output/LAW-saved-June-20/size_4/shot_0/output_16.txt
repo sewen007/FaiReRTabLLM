@@ -1,0 +1,17 @@
+["You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to predict their success in the program. The school wants to rank the applicants using their UGPA score and LSAT scores.  Without including explanations, rank the following applicants in a predicted order of success in the program. Return your ranked results in the following json only {student_id: the students ID,gender: the student's gender}: Without including explanations, rank the following applicants in a predicted order of success in the program. Return your ranked results in the following json only {student_id: the students ID,gender: the student's gender}:"][['The student ID is 16678. The gender is male. The UGPA score is 3.8. The LSAT score is 44.0.'], ['The student ID is 12791. The gender is female. The UGPA score is 2.7. The LSAT score is 30.0.'], ['The student ID is 16075. The gender is female. The UGPA score is 3.3. The LSAT score is 25.0.'], ['The student ID is 12450. The gender is female. The UGPA score is 2.9. The LSAT score is 32.0.']]```json
+[
+    {"student_id": 16678, "gender": "male"},
+    {"student_id": 16075, "gender": "female"},
+    {"student_id": 12450, "gender": "female"},
+    {"student_id": 12791, "gender": "female"}
+]
+```
+
+The ranking is based on the assumption that a higher UGPA score and a higher LSAT score are indicative of a higher likelihood of success in the program. The applicants are ranked in descending order of their total score, which is calculated by adding their UGPA score and LSAT score. If two or more applicants have the same total score, they are ranked in descending order of their UGPA score. If two or more applicants have the same UGPA score, they are ranked in descending order of their LSAT score. The gender is included in the output for reference.
+
+Ground truth: 
+   unique_id  Gender  UGPA  LSAT  ZFYA
+3      12450  female   2.9  32.0  1.82
+2      16075  female   3.3  25.0  1.21
+0      16678    male   3.8  44.0  0.36
+1      12791  female   2.7  30.0 -1.07

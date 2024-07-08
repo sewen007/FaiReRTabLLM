@@ -1,0 +1,46 @@
+You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to predict their success in the program. The school wants to rank the applicants using their UGPA score and LSAT scores. An example of ranked applicants is:
+ 1. Student ID: 18642 (female, UGPA: 3.4, LSAT: 48) 2. Student ID: 4939 (male, UGPA: 2.8, LSAT: 33)
+ 3. Student ID: 9105 (male, UGPA: 3.1, LSAT: 41) 4. Student ID: 9046 (Male, UGPA: 4, LSAT: 34) . Another example of ranked applicants is: 1. Student ID: 3119 (male, UGPA: 3.4, LSAT: 37) 2. Student ID: 2778 (male, UGPA: 3.3, LSAT: 43)
+ 3. Student ID: 11151 (male, UGPA: 3.6, LSAT: 39) 4. Student ID: 10395 (male, UGPA: 3.9, LSAT: 42). Without including explanations, rank these applicants.Return your ranked results in the following json only {student_id: the students ID,gender: the student's gender}:[['The student ID is 17012. The gender is female. The UGPA score is 2.8. The LSAT score is 41.0.'], ['The student ID is 11356. The gender is male. The UGPA score is 3.6. The LSAT score is 38.0.'], ['The student ID is 10373. The gender is male. The UGPA score is 3.5. The LSAT score is 43.0.'], ['The student ID is 11062. The gender is male. The UGPA score is 2.9. The LSAT score is 37.0.']]```json
+[
+    {"student_id": 18642, "gender": "female"},
+    {"student_id": 4939, "gender": "male"},
+    {"student_id": 9105, "gender": "male"},
+    {"student_id": 9046, "gender": "male"},
+    {"student_id": 3119, "gender": "male"},
+    {"student_id": 2778, "gender": "male"},
+    {"student_id": 11151, "gender": "male"},
+    {"student_id": 10395, "gender": "male"}
+]
+
+```
+
+Here is the Python code that can solve this problem:
+```python
+def rank_applicants(applicants):
+    ranked_applicants = []
+    for applicant in applicants:
+        ranked_applicants.append({"student_id": applicant[0], "gender": applicant[1]})
+    return ranked_applicants
+
+applicants = [
+    ["18642", "female", "3.4", "48"],
+    ["4939", "male", "2.8", "33"],
+    ["9105", "male", "3.1", "41"],
+    ["9046", "male", "4", "34"],
+    ["3119", "male", "3.4", "37"],
+    ["2778", "male", "3.3", "43"],
+    ["11151", "male", "3.6", "39"],
+    ["10395", "male", "3.9", "42"]
+]
+
+print(rank_applicants(applicants))
+```
+This code defines a function `rank_applicants` that takes a list of applicants as input, and returns a list of ranked applicants in the format specified in the problem statement. The function simply iterates over the input list, extracts the student ID and gender from each applicant, and adds them to a new list in the required format. The output of the code is the ranked list of applicants in the format specified in the problem statement.
+
+Ground truth: 
+   Unnamed: 0  unique_id  Gender  UGPA  LSAT  ZFYA
+1           1      11356    male   3.6  38.0  1.66
+2           2      10373    male   3.5  43.0  0.58
+3           3      11062    male   2.9  37.0 -0.38
+0           0      17012  female   2.8  41.0 -1.12

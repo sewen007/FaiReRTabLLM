@@ -2,7 +2,7 @@ from huggingface_hub import login, HfApi
 
 # Login to hugging face
 
-token = "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"
+token = "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"
 
 
 def CheckLogin():
