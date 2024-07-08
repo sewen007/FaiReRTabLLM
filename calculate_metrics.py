@@ -14,7 +14,7 @@ with open('settings.json', 'r') as f:
 
 start = time.time()
 
-sample_size = settings["GENERAL_SETTINGS"]["sample_size"]
+sample_sizes = settings["GENERAL_SETTINGS"]["sample_sizes"]
 experiment_name = "LAW"
 
 delimiters = "_", "/", "\\", "."
@@ -108,7 +108,11 @@ def collect_json_after_second_occurrence(file_path):
                 try:
                     # Parse the JSON array
                     json_array = json.loads(json_array_str)
-                    df = pd.DataFrame.from_records(json_array)
+                    if isinstance(json_array, list) and all(isinstance(item, dict) for item in json_array):
+                        df = pd.DataFrame.from_records(json_array)
+                    else:
+                        print("json_array is not a list of dictionaries")
+                        return None
 
                     return df
 
@@ -126,13 +130,15 @@ def collect_json_after_second_occurrence(file_path):
         return None
 
 
-def CalculateResultMetrics(shot=0):
+def calculate_metrics_per_shot(shot='shot_0', exp_name='LAW', rank_size='size_2'):
     """
     Calculate the Kendall Tau correlation coefficient between the ground truth and the inferred rankings
     :return: Kendall Tau correlation coefficient
     """
+    shot = shot.split('_')[1]
+    sample_size = rank_size.split('_')[1]
     # read all txt files in the data folder
-    path = 'Llama3Output/LAW/size_' + sample_size + '/shot_' + str(shot) + '/'
+    path = 'Llama3Output/' + exp_name + '/size_' + sample_size + '/shot_' + str(shot) + '/'
     ranked_folder = os.listdir(path)
 
     # list all txt_files in the directory
@@ -140,7 +146,8 @@ def CalculateResultMetrics(shot=0):
     # count files without proper json
     count_err = 0
     # Open the CSV file outside the loop to ensure it's opened only once
-    results_path = Path("../LLMFairRank/Results/LAW/size_" + sample_size + "/shot_" + str(shot) + "/")
+    # results_path = Path("../LLMFairRank/Results/LAW/size_" + sample_size + "/shot_" + str(shot) + "/")
+    results_path = Path("../LLMFairRank/Results/" + exp_name + "/size_" + sample_size + "/shot_" + str(shot) + "/")
 
     if not os.path.exists(results_path):
         os.makedirs(results_path)
@@ -181,11 +188,134 @@ def CalculateResultMetrics(shot=0):
             writer.writerow([sample_number, kT_corr[0]])
 
 
-CalculateResultMetrics()
-CalculateResultMetrics(1)
-CalculateResultMetrics(2)
+def CalculateResultMetrics():
+    folder = Path("Llama3Output/")
+    # Get the list of experiments
+    experiments = [f for f in os.listdir(folder) if os.path.isdir(folder / f)]
+    for experiment in experiments:
+        experiment_path = folder / experiment
+        # Get the list of sizes
+        sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
+        for size in sizes:
+            size_path = experiment_path / size
+            # Get the list of shots
+            shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
+            for shot in shots:
+                print("Calculating metrics for shot", shot, "in experiment", experiment, "and size", size)
+                calculate_metrics_per_shot(str(shot), experiment, size)
+
+
+def collate_metrics():
+    """
+    Collate the metrics from the different shots into a single CSV file
+    :return:
+    """
+    results_folder = Path("Results/")
+    # Get the list of experiments
+    experiments = [f for f in os.listdir(results_folder) if os.path.isdir(results_folder / f)]
+    for experiment in experiments:
+        experiment_path = results_folder / experiment
+        # Get the list of sizes
+        sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
+        for size in sizes:
+            size_path = experiment_path / size
+            collated_metrics_path = str(size_path / "collated_metrics_") + str(size) + ".csv"
+            shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
+            # reorder the shots
+            shots = sorted(shots, key=lambda x: int(x.split('_')[1]))
+
+            with open(collated_metrics_path, 'w', newline='') as f_collated_metrics:
+                writer = csv.writer(f_collated_metrics)
+                # write header row corresponding to the different shots
+                writer.writerow(["Sample"] + shots)
+                # write sample column
+                # Write the rows with sample numbers and empty values for shots
+                n = 50  # number of samples
+                for i in range(1, n + 1):
+                    row = [i] + ["" for _ in shots]  # Empty strings for each shot column
+                    writer.writerow(row)
+
+            for shot in shots:
+                shot_path = size_path / shot
+                metrics_path = shot_path / "metrics.csv"
+                # read file
+                metric_df = pd.read_csv(metrics_path)
+                # sort the dataframe by the sample column
+                metric_df = metric_df.sort_values(by="Sample", ascending=True)
+                collated_metric_df = pd.read_csv(collated_metrics_path)
+                # Check if the "shot" column exists in the original DataFrame
+                if shot in collated_metric_df.columns:
+                    # Ensure the length of new values matches the length of the original DataFrame
+                    if len(metric_df) == len(collated_metric_df):
+                        # Update the "shot" column with values from the new DataFrame
+                        collated_metric_df[shot] = metric_df["Kendall Tau"].tolist()
+                    else:
+
+                        print(
+                            "The length of the collated metrics DataFrame does not match the length of the original "
+                            "DataFrame.")
+                        continue
+                else:
+                    print("The 'shot' column does not exist in the original CSV file.")
+                    continue
+
+                # Save the updated DataFrame back to the CSV file
+                collated_metric_df.to_csv(str(collated_metrics_path),index=False)
+
+    # print(experiments)
+    # print("Collating metrics...")
+
+
+# CalculateResultMetrics()
+# collate_metrics()
+# CalculateResultMetrics(1)
+# CalculateResultMetrics(2)
+# CalculateResultMetrics(3)
+# CalculateResultMetrics(7)
+# CalculateResultMetrics(10)
 
 # kendall tau correlation test
+# test
+# ranking_ids_1 = [1, 2, 3, 4, 5]
+# reversed_ranking_ids_1 = [5, 4, 3, 2, 1]
+# test = kendall_tau(ranking_ids_1, reversed_ranking_ids_1)
+# print(ranking_ids_1, reversed_ranking_ids_1, ', Kendall Tau = ', test)
+#
+# test_2 = kendall_tau(reversed_ranking_ids_1, ranking_ids_1)
+# print(reversed_ranking_ids_1, ranking_ids_1, ', Kendall Tau = ', test_2)
+#
+# random = np.random.randint(1, 100, 5)
+# test_4 = kendall_tau(ranking_ids_1, random)
+# print(ranking_ids_1, random, ', Kendall Tau = ', test_4)
+#
+# kendall_zero = [5, 3, 4, 1, 2]
+# test_6 = kendall_tau(ranking_ids_1, kendall_zero)
+# print(ranking_ids_1, kendall_zero, ', Kendall Tau = ', test_6)
+#
+# misarranged = [4, 3, 2, 5, 1]
+# test_5 = kendall_tau(ranking_ids_1, misarranged)
+# print(ranking_ids_1, misarranged, ', Kendall Tau = ', test_5)
+#
+# misarranged = [2, 3, 2, 5, 2]
+# test_5 = kendall_tau(ranking_ids_1, misarranged)
+# print(ranking_ids_1, misarranged, ', Kendall Tau = ', test_5)
+#
+# ######################################################
+# misarranged = [4, 3, 2, 5, 4]
+# test_5 = kendall_tau(ranking_ids_1, misarranged)
+# print(ranking_ids_1, misarranged, ', Kendall Tau = ', test_5)
+#
+# misarranged = [1, 3, 2, 5, 1]
+# test_5 = kendall_tau(ranking_ids_1, misarranged)
+# print(ranking_ids_1, misarranged, ', Kendall Tau = ', test_5)
+#
+# misarranged = [1, 3, 2, 5, 4]
+# test_5 = kendall_tau(ranking_ids_1, misarranged)
+# print(ranking_ids_1, misarranged, ', Kendall Tau = ', test_5)
+#
+# test_3 = kendall_tau(ranking_ids_1, ranking_ids_1)
+# print(ranking_ids_1, ranking_ids_1, ', Kendall Tau = ', test_3)
+
 
 end = time.time()
-print("time taken = ", end - start)
+#print("time taken = ", end - start)

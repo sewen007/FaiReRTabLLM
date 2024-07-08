@@ -38,6 +38,27 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\Results\LAW\size_2\collated_metrics_size_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\size_3\collated_metrics_size_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\size_3\shot_0\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\Results\LAW\size_4\shot_0\metrics.csv">
           <value>
             <Attribute>
@@ -53,6 +74,27 @@
           </value>
         </entry>
         <entry key="\Results\LAW\size_4\shot_2\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\size_5\shot_0\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\size_5\shot_1\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\size_5\shot_2\metrics.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
