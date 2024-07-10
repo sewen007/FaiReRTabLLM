@@ -3,7 +3,7 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\Datasets\LAW\LAW_data_for_LLM.csv">
+        <entry key="\Datasets\LAW\LAW_data.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -31,70 +31,154 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\LAW_train_data.csv">
+        <entry key="\Datasets\LAW\LAW_train_data_for_LLM.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_2\collated_metrics_size_2.csv">
+        <entry key="\Datasets\LAW\Tests\rank_size_50.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_3\collated_metrics_size_3.csv">
+        <entry key="\Datasets\LAW\Train\rank_size_50_shot_1.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_3\shot_0\metrics.csv">
+        <entry key="\Datasets\LAW\Train\rank_size_50_shot_2.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_4\shot_0\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=1,gamma=0)LAW.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_4\shot_1\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=10,gamma=0)LAW.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_4\shot_2\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=100,gamma=0)LAW.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_5\shot_0\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=1000,gamma=0)shot_1_size_50.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_5\shot_1\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=1000,gamma=0)shot_2_size_50.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\size_5\shot_2\metrics.csv">
+        <entry key="\LNLoss\LAW\(num_iterations=10000,gamma=0)shot_1_size_100.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\LNLoss\LAW\(num_iterations=10000,gamma=0)shot_1_size_200.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\LNLoss\LAW\(num_iterations=10000,gamma=0)shot_1_size_350.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\LNLoss\LAW\(num_iterations=10000,gamma=0)shot_1_size_400.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\LNLoss\LAW\(num_iterations=10000,gamma=0)shot_1_size_50.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\Meta-Llama-3-8B-Instruct\rank_size_50\shot_0\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ndcg.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_1\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_1\ndcg.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_2\metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\rank_size_50\shot_2\ndcg.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
