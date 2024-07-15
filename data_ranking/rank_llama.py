@@ -3,10 +3,7 @@ import os
 import re
 import time
 from pathlib import Path
-import random
-
 import pandas as pd
-
 from hf_login import CheckLogin
 
 os.environ['TRANSFORMERS_CACHE'] = '/scratch/shared/models/'
@@ -20,10 +17,10 @@ with open('../settings.json', 'r') as f:
     settings = json.load(f)
 CheckLogin()
 
-sample_sizes = settings["GENERAL_SETTINGS"]["sample_sizes"]
+sample_sizes = settings["GENERAL_SETTINGS"]["rank_sizes"]
 shots = settings["GENERAL_SETTINGS"]["shots"]
 
-experiment_name = "LAW"
+experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
 delimiters = "_", "/", "\\", "."
 regex_pattern = '|'.join(map(re.escape, delimiters))
 
@@ -51,7 +48,7 @@ model_sig = 'Meta-Llama-3-8B-Instruct'
 pipe = pipeline("text-generation", model=model_name, torch_dtype=torch.float16, device_map=device_map)
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 
 prompt_addon = "```json"
 
@@ -188,8 +185,7 @@ def prepare_template(shots=0, rank_size=50):
                 '../Datasets/' + experiment_name + '/Train/' + 'rank_size_' + str(size) + '_shot_' + str(
                     i + 1) + '.csv')
 
-            # Create examples list with randomly selected rows
-            examples = [row_converter(shot_sample)]
+            examples = [row_converter(row) for index, row in shot_sample.iterrows()]
 
             enumerated_examples = []
             for k, item in enumerate(examples):
@@ -227,7 +223,9 @@ def RankWithLlamaMultipleSizesAndShots():
 
 # test = prepare_template(3)
 
-RankWithLlamaMultipleSizesAndShots()
+#RankWithLlamaMultipleSizesAndShots()
+
+RankWithLlama(shot=0, rank_size=50)
 
 end = time.time()
 

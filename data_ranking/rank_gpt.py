@@ -56,12 +56,13 @@ def get_prefix_prompt(query, num):
              'content': "You are RankGPT, an intelligent assistant that can rank items based on their relevancy to "
                         "the query."},
             {'role': 'user',
-             'content': f"I will provide you with {num} student details, each indicated by number identifier []. "
-                        f"\nRank the students based on their relevance to query: {query}."},
-            {'role': 'assistant', 'content': 'Okay, please provide the passages.'}]
+             'content': f"I will provide you with a list of {num} items, each item having feature values and each item "
+                        f"is indicated by a number identifier []."
+                        f" Rank the items based on their relevance to the query: {query}."},
+            {'role': 'assistant', 'content': 'Okay, please provide the list.'}]
 
 
-def create_permutation_instruction(item=None, rank_start=0, rank_end=100, model_name='gpt-3.5-turbo'):
+def create_permutation_instruction(item=None, rank_start=0, rank_end=50):
     query = item['query']
     num = len(item['hits'][rank_start: rank_end])
 
@@ -74,7 +75,6 @@ def create_permutation_instruction(item=None, rank_start=0, rank_end=100, model_
         content = hit['content']
         content = content.replace('Title: Content: ', '')
         content = content.strip()
-        # For Japanese should cut by character: content = content[:int(max_length)]
         content = ' '.join(content.split()[:int(max_length)])
         messages.append({'role': 'user', 'content': f"[{rank}] {content}"})
         messages.append({'role': 'assistant', 'content': f'Received passage [{rank}].'})
@@ -91,7 +91,7 @@ def run_llm(messages, api_key=None, model_name="gpt-3.5-turbo"):
 
 
 def get_post_prompt(query, num):
-    return (f"Search Query: {query}. \nRank the {num} passages above items based on their relevance to the search "
+    return (f"Search Query: {query}. \nRank the {num} items based on their relevance to the search "
             f"query. The items should be listed in descending order using identifiers. The most relevant passages "
             f"should be listed first. The output format should be [] > [], e.g., [1] > [2]. Only response the ranking "
             f"results, do not say any word or explain.")

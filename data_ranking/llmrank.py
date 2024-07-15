@@ -1,80 +1,131 @@
 # from data_analysis.calculate_metrics import kendall_tau
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+from hf_login import CheckLogin
 from rank_gpt import create_permutation_instruction, run_llm, receive_permutation
 import json
 import os
-import random
 import re
 import time
 from pathlib import Path
-import torch
-from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
 import pandas as pd
 
 os.environ['TRANSFORMERS_CACHE'] = '/scratch/shared/models/'
 
 start = time.time()
 
-experiment_name = "LAW"
 # variables for GPT
 api_key = "sk-proj-BKhsxjRDcvt4ZBzlM63pT3BlbkFJlmacaHE8VVdLZwGhmV1P"
-rank_size = 50
-test_df = pd.read_csv('../Datasets/' + experiment_name + '/' + experiment_name + '_test_data_for_LLM.csv')
-train_path = '../Datasets/' + experiment_name + '/' + experiment_name + '_train_data_for_LLM.csv'
 
 with open('../settings.json', 'r') as f:
     settings = json.load(f)
 
-sample_sizes = settings["GENERAL_SETTINGS"]["sample_sizes"]
+sample_sizes = settings["GENERAL_SETTINGS"]["rank_sizes"]
 shots = settings["GENERAL_SETTINGS"]["shots"]
+experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
+score_column = settings["READ_FILE_SETTINGS"]["SCORE_COL"]
 
 delimiters = "_", "/", "\\", "."
 regex_pattern = '|'.join(map(re.escape, delimiters))
 
 
-def row_converter(row):
-    return "Student ID: " + str(row['unique_id']) + " (" + str(row['Gender']) + ", UGPA: " + str(row['UGPA']) + (
-        ",LSAT: ") + str(row['LSAT']) + ")"
+def rank_with_llama(model_name, number_of_shots=0, size=5):
+    CheckLogin()
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("CUDA is available.")
+    else:
+        device = torch.device("cpu")
+        print("CUDA is not available, exiting")
+        exit()
+    device_map = "auto"
 
+    model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device_map)
 
-def RankWithLlamaMultipleSizesAndShots():
-    for size in sample_sizes:
-        for shot in shots:
-            pass
-            # RankWithLlama(shot, rank_size=size)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
+    df = pd.read_csv(f"../Datasets/{experiment_name}/Tests/rank_size_{size}.csv")
 
-def rank_with_GPT(model_name, number_of_shots=0):
-    # df = test_df.sample(n=rank_size, random_state=1)
-    df = pd.read_csv(f"../Datasets/{experiment_name}/Tests/rank_size_'{rank_size}.csv")
     item = create_items(df, number_of_shots)
     # (1) Create permutation generation instruction
-    messages = create_permutation_instruction(item=item, rank_start=0, rank_end=rank_size, model_name=model_name)
+    messages = create_permutation_instruction(item=item, rank_start=0, rank_end=size)
+    template_prompt_pred = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
+    template_prompt_pred += '<|start_header_id|>prediction<|end_header_id|>\n\n'
+    inputs_template_pred = tokenizer(template_prompt_pred, add_special_tokens=False, return_tensors='pt')
+    inputs_template_pred = inputs_template_pred.to(device)
+
+    # generate an output using the template prompt and print only the model generated tokens
+    outputs_template_pred = model.generate(**inputs_template_pred, pad_token_id=tokenizer.eos_token_id,
+                                           max_new_tokens=25, return_dict_in_generate=True)
+    generated_tokens_template_pred = outputs_template_pred.sequences[:,
+                                     inputs_template_pred.input_ids.shape[1]:]  # for decoder only models
+    generated_text_template_pred = tokenizer.decode(generated_tokens_template_pred[0], skip_special_tokens=True)
+
+    # Use permutation to re-rank the passage
+    new_item = receive_permutation(item, generated_text_template_pred, rank_start=0, rank_end=size)
+    # Extract information and store in a list of dictionaries
+    gt_df, merged_df = extract_and_save_permutation(df, new_item, model_name, number_of_shots, size)
+
+    return gt_df, merged_df
+
+
+def RankWithLLM(model_name, shot_number=1, runs=5, size=50):
+    results_dir = Path(
+        f'../Datasets/{experiment_name}/Ranked/{model_name}/rank_size_{size}/shot_{shot_number}')
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    # gt_df = rank_with_llama(model_name, shot_number)[0]
+    gt_df = pd.read_csv(f"../Datasets/{experiment_name}/Tests/rank_size_{size}.csv")
+    gt_df = gt_df.sort_values(by=[score_column], ascending=False)
+    gt_df.to_csv(os.path.join(results_dir, 'ground_truth.csv'), index=False)
+    print('gt_df = ', gt_df)
+    for i in range(runs):
+        if "llama" in model_name:
+            ranked_df = rank_with_llama(model_name, shot_number, size)[1]
+        else:  # "gpt" in model_name:
+            ranked_df = rank_with_GPT(model_name, shot_number, size)[1]
+        ranked_df.to_csv(os.path.join(results_dir, 'ranked_data_' + str(i + 1) + '.csv'), index=False)
+
+
+def rank_with_GPT(model_name, number_of_shots=0, size=5):
+    # df = test_df.sample(n=rank_size, random_state=1)
+    df = pd.read_csv(f"../Datasets/{experiment_name}/Tests/rank_size_{size}.csv")
+    item = create_items(df, number_of_shots)
+    # (1) Create permutation generation instruction
+    messages = create_permutation_instruction(item=item, rank_start=0, rank_end=size)
     print('messages = ', messages)
 
     # (2) Get ChatGPT predicted permutation
     permutation = run_llm(messages, api_key=api_key, model_name=model_name)
 
     # (3) Use permutation to re-rank the passage
-    new_item = receive_permutation(item, permutation, rank_start=0, rank_end=rank_size)
+    new_item = receive_permutation(item, permutation, rank_start=0, rank_end=size)
 
+    gt_df, merged_df = extract_and_save_permutation(df, new_item, model_name, number_of_shots, size)
+
+    return gt_df, merged_df
+
+
+def extract_and_save_permutation(df, new_item, model_name, number_of_shots=0, size=5):
     # Extract information and store in a list of dictionaries
     extracted_ranked_data = [extract_info(item['content']) for item in new_item['hits']]
 
     # Convert list of tuples to DataFrame
     ranked_df = pd.DataFrame(extracted_ranked_data)
 
-    # order gt_df by ZFYA
-    gt_df = df.sort_values(by=['ZFYA'], ascending=False)
+    # order gt_df by score_column
+    gt_df = df.sort_values(by=[score_column], ascending=False)
 
     # rename unique_id to Student ID in gt_df
-    gt_df.rename(columns={'unique_id': 'Student ID'}, inplace=True)
+    gt_df.rename(columns={'doc_id': 'Student ID'}, inplace=True)
 
     # get gt scores from df
-    merged_df = pd.merge(ranked_df, gt_df[['Student ID', 'ZFYA']], on='Student ID', how='left')
+    merged_df = pd.merge(ranked_df, gt_df[['Student ID', score_column]], on='Student ID', how='left')
 
     # create directory for results based on n and model name
     results_dir = Path(
-        f'../Datasets-backup/{experiment_name}/Ranked/{model_name}/rank_size_{rank_size}/shot_{number_of_shots}')
+        f'../Datasets/{experiment_name}/Ranked/{model_name}/rank_size_{size}/shot_{number_of_shots}')
 
     # Create the directory if it doesn't exist
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -102,8 +153,7 @@ def create_items(df, number_of_shots=0):
     'query': 'You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to '
              'predict their success in the program. The school wants to rank the applicants using their UGPA score '
              'and LSAT scores.  Without including explanations, rank the following applicants in a predicted order of '
-             'success in the program. Return your ranked results in the following json only {student_id: the student\'s '
-             ' ID,gender: the student gender}:',
+             'success in the program.',
     'hits': [
         {'content': 'Student ID: 18739 (Gender: female, UGPA: 3.7, LSAT: 44.0)'},
         {'content': 'Student ID: 8742 (Gender: male, UGPA: 3.2, LSAT: 20.0)'},
@@ -116,11 +166,10 @@ def create_items(df, number_of_shots=0):
     if s_shots == 0:
 
         # Hardcoded query
-        query = ('You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to'
-                 'predict their success in the program. The school wants to rank the applicants using their UGPA score '
-                 'and LSAT scores. Rank the following applicants in a predicted order of success in the program. Return'
-                 'your ranked results in the following json only {student_id: the student\'s'
-                 'ID,gender: the student gender}:')
+        query = (
+            'You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to '
+            'predict their success in the program. The school wants to rank the applicants using their UGPA score '
+            'and LSAT scores. Rank the following applicants in a predicted order of success in the program:')
     else:
         # note that the shot examples come from the training data
         query = prepare_template(s_shots, n_rank_size)
@@ -128,7 +177,7 @@ def create_items(df, number_of_shots=0):
     # Creating the hits list from the DataFrame
     hits = []
     for index, row in df.iterrows():
-        content = f"Student ID: {row['unique_id']} (Gender: {row['Gender']}, UGPA: {row['UGPA']}, LSAT: {row['LSAT']})"
+        content = f"Student ID: {row['doc_id']} (Gender: {row['Gender']}, UGPA: {row['UGPA']}, LSAT: {row['LSAT']})"
         hits.append({'content': content})
 
     # Creating the final JSON object
@@ -143,13 +192,9 @@ def prepare_template(shot=0, size=3):
     base_template = ("You are the admissions ranking system for a Law school; their goal is to rank a list of "
                      "applicants to predict their success in the program. The school wants to rank the applicants "
                      "using their UGPA score and LSAT scores. ")
-    instruct_template = (" Rank the following applicants in a predicted order of success in the program. "
-                         "Return your ranked results in the following json only {""Student ID"": ""the students ID"",""gender"": ""the "
-                         "student's gender""}:")
+    instruct_template = " Rank the following applicants in a predicted order of success in the program.:"
     shot_templates = []
-    sampling_data = pd.read_csv(train_path)
-    # based on ranking size, convert rows of data to sample formats
-    # for i in range(shots+1):
+
     shot_template = base_template
     if shot == 0:
         shot_template += instruct_template
@@ -157,16 +202,11 @@ def prepare_template(shot=0, size=3):
         for i in range(shot):
             shot_template += (pick_conjunction(i) + " example of ranked applicants in order of success in the "
                                                     "program is: ")
-            # Randomly select  number of indices from the range of available indices
-            random_indices = sorted(random.sample(range(len(sampling_data)), int(size)))
-
-            # create new df with randomly selected rows
-            new_df = sampling_data.iloc[random_indices]
-            new_df.to_csv(
-                '../Datasets/' + experiment_name + '/Train/rank_size_' + str(size) + '_shot_' + str(i + 1) + '.csv',
-                index=False)
-            # Create examples list with randomly selected rows
-            examples = [row_converter(sampling_data.iloc[j]) for j in random_indices]
+            shot_sample = pd.read_csv(
+                '../Datasets/' + experiment_name + '/Train/' + 'rank_size_' + str(size) + '_shot_' + str(
+                    i + 1) + '.csv')
+            # Create examples list from the shot_sample
+            examples = [row_converter(row) for index, row in shot_sample.iterrows()]
 
             enumerated_examples = []
             for k, item in enumerate(examples):
@@ -191,19 +231,22 @@ def pick_conjunction(i):
         return conjunction_options[3]
 
 
-def RankWithGPT(model_name, shot_number=1, runs=5):
-    results_dir = Path(
-        f'../Datasets-backup/{experiment_name}/Ranked/{model_name}/rank_size_{rank_size}/shot_{shot_number}')
-    gt_df = rank_with_GPT(model_name, shot_number)[0]
-    gt_df.to_csv(os.path.join(results_dir, 'ground_truth.csv'), index=False)
-    for i in range(runs):
-        # result = rank_with_GPT(model_name, shot_number)[0]
-        ranked_df = rank_with_GPT(model_name, shot_number)[1]
-        ranked_df.to_csv(os.path.join(results_dir, 'ranked_data_' + str(i + 1) + '.csv'), index=False)
-        # print(f"Run {i + 1} Kendall's Tau: {result}")
+def row_converter(row):
+    return "Student ID: " + str(row['doc_id']) + " (" + str(row['Gender']) + ", UGPA: " + str(row['UGPA']) + (
+        ",LSAT: ") + str(row['LSAT']) + ")"
 
 
-RankWithGPT("gpt-3.5-turbo")
+# for shot in shots:
+#     RankWithGPT("gpt-3.5-turbo", shot, 1)
+
+# RankWithGPT("gpt-3.5-turbo", 1, 1)
+
+# rank_with_llama("meta-llama/Meta-Llama-3-8B-Instruct", 0, 5)
+
+for shot in shots:
+    RankWithLLM("gpt-3.5-turbo", shot, 5, 50)
+
+# RankWithLLM("gpt-3.5-turbo", 0, 5, 5)
 
 end = time.time()
 

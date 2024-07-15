@@ -70,7 +70,7 @@ def train(train_size, full_train=False):
     if not os.path.exists(file_folder):
         os.makedirs(file_folder)
     FILE_PATH = r'../Models/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
-        gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + '.obj'
+        gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + '_'+experiment_name+'.obj'
     file = open(FILE_PATH, "wb")
     pickle.dump(dtr, file)
     print("SAVED MODEL TO PATH: " + FILE_PATH)

@@ -18,7 +18,7 @@ with open('../settings.json', 'r') as f:
 
 start = time.time()
 
-sample_sizes = settings["GENERAL_SETTINGS"]["sample_sizes"]
+sample_sizes = settings["GENERAL_SETTINGS"]["rank_sizes"]
 experiment_name = "LAW"
 
 delimiters = "_", "/", "\\", "."
@@ -75,7 +75,7 @@ def collect_json_after_second_occurrence(file_path):
         return None
 
 
-def calculate_metrics_per_shot(shot_path, shot='shot_0', exp_name=experiment_name, rank_size='size_3'):
+def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment_name, rank_size='size_3'):
     """
     Calculate the Kendall Tau correlation coefficient between the ground truth and the inferred rankings
     :return: Kendall Tau correlation coefficient
@@ -112,7 +112,7 @@ def calculate_metrics_per_shot(shot_path, shot='shot_0', exp_name=experiment_nam
 
             run_number = file.split('_')[-1].split('.')[0]
 
-            gt_unique_ids = ground_truth_df["Student ID"].tolist()
+            gt_unique_ids = ground_truth_df["doc_id"].tolist()
             ranked_unique_ids = ranked_df["Student ID"].tolist()
 
             # Convert items in the lists to floats
@@ -126,31 +126,38 @@ def calculate_metrics_per_shot(shot_path, shot='shot_0', exp_name=experiment_nam
 
             """ CALCULATE AND STORE NDCG"""
             print("Calculating NDCG...")
+            GT_score = np.array(ranked_df.iloc[:, -1])
+            GT_score_normalized = (GT_score - np.min(GT_score)) / (np.max(GT_score) - np.min(GT_score))
             ndcg_path = results_path / "ndcg.csv"
             ndcg_data = []
             for i in range(1, len(ranked_df) + 1):
-                ndcg = NDCG(np.array(ranked_df.iloc[:, 0]), np.array(ranked_df.iloc[:, -1]), i)
+                ndcg = NDCG(np.array(ranked_df.iloc[:, 0]), GT_score_normalized, i)
                 ndcg_data.append([i, ndcg])
 
-            print("Finished calculating NDCG.")
-            ndcg_header = ["Position", "NDCG"]
-            with open(ndcg_path, 'w') as f_ndcg:
-                print("Writing to NDCG csv.")
-                writer_ndcg = csv.writer(f_ndcg)
-                # write the header
-                writer_ndcg.writerow(ndcg_header)
+            if run_number == '1':
+                ndcg_header = ["Position"] + [f"NDCG_{number}" for number in range(1, int(run_number) + 1)]
+                # only write on the NDCG_1 columna
+                with open(ndcg_path, 'w') as f_ndcg:
+                    print("Writing to NDCG csv.")
+                    writer_ndcg = csv.writer(f_ndcg)
+                    # write the header
+                    writer_ndcg.writerow(ndcg_header)
 
-                # write the data
-                writer_ndcg.writerows(ndcg_data)
-
-            print("NDCG written to csv.")
+                    # write the data
+                    writer_ndcg.writerows(ndcg_data)
+            else:
+                ndcg_df = pd.read_csv(ndcg_path)
+                ndcg_df[f'NDCG_{run_number}'] = [item[1] for item in ndcg_data]
+                ndcg_df.to_csv(ndcg_path, index=False)
 
 
 def CalculateResultMetrics():
-    folder = Path(f"../Datasets-backup/{experiment_name}/Ranked")
+    folder = Path(f"../Datasets/{experiment_name}/Ranked")
     # Get the list of experiments
     experiments = [f for f in os.listdir(folder) if os.path.isdir(folder / f)]
     for experiment in experiments:
+        if 'llama' in experiment:
+            experiment = 'meta-llama/Meta-Llama-3-8B-Instruct'
         experiment_path = folder / experiment
         # Get the list of sizes
         sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
@@ -161,13 +168,13 @@ def CalculateResultMetrics():
             for shot in shots:
                 shot_path = size_path / shot
                 print("Calculating metrics for shot", shot, "in experiment", experiment, "and size", size)
-                if 'Llama' in experiment:
-                    calculate_metrics_per_shot_llama(shot, experiment, size)
+                if 'ListNet' in experiment:
+                    pass
                 else:
-                    calculate_metrics_per_shot(str(shot_path), str(shot), experiment, size)
+                    calculate_metrics_per_shot_llm(str(shot_path), str(shot), experiment, size)
 
 
-def calculate_metrics_per_shot_llama(shot='shot_0', experiment='Meta-Llama-3-8B-Instruct', size='size_3'):
+def calculate_metrics_per_shot_llama(shot='shot_0', experiment='meta-llama/Meta-Llama-3-8B-Instruct', size='size_3'):
     """
     Calculate the Kendall Tau correlation coefficient between the ground truth and the inferred rankings
     :return: Kendall Tau correlation coefficient

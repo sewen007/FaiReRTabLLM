@@ -37,3 +37,6 @@ def prep_LLM_data(size=50, sh=1):
 for rank_size in rank_sizes:
     for shot in shots:
         prep_LLM_data(rank_size, shot)
+
+# for shot in shots:
+#     prep_LLM_data(5, shot)
