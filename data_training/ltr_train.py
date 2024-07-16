@@ -52,8 +52,11 @@ def train(train_size, full_train=False):
     loss_dir_path = '../LNLoss/' + experiment_name
     if not os.path.exists(loss_dir_path):
         os.makedirs(loss_dir_path)
-
-    LOSS_PATH = '../LNLoss/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
+    if full_train:
+        LOSS_PATH = '../LNLoss/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
+            gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(len(train_data)) + "_full_train.csv"
+    else:
+        LOSS_PATH = '../LNLoss/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
         gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + ".csv"
 
     with open(LOSS_PATH, 'w', newline='') as csvfile:
