@@ -48,13 +48,13 @@ def rank_ltr(size=50):
     :param shot:
     :return:
     """
-    write_path = f'../Datasets/{experiment_name}/Ranked/{model_name}'
+    write_path = f'../Datasets/{experiment_name}/Ranked/{model_name}/prompt_NA'
 
     gt = f'../Datasets/{experiment_name}/Tests/rank_size_{size}.csv'
     rank(models, size, write_path, gt)
 
 
-def rank(models, size, write_path=f'../Datasets/{experiment_name}/Ranked/{model_name}',
+def rank(models, size, write_path=f'../Datasets/{experiment_name}/Ranked/{model_name}/prompt_NA',
          gt_path=f'../Datasets/{experiment_name}/Tests/rank_size_50.csv'):
     write_path = Path(write_path) / f'rank_size_{size}/shot_NA'
     if not os.path.exists(write_path):

@@ -21,7 +21,7 @@ if dadv_group == 'female':
     adv_group = 'male'
 else:
     adv_group = 'female'
-demo_dict = {adv_group: 0, dadv_group: 1}
+demo_dict = {adv_group: 1, dadv_group: 0}
 
 shot = 1
 
@@ -57,7 +57,7 @@ def train(train_size, full_train=False):
             gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(len(train_data)) + "_full_train.csv"
     else:
         LOSS_PATH = '../LNLoss/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
-        gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + ".csv"
+            gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + ".csv"
 
     with open(LOSS_PATH, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
@@ -73,13 +73,14 @@ def train(train_size, full_train=False):
     if not os.path.exists(file_folder):
         os.makedirs(file_folder)
     FILE_PATH = r'../Models/' + experiment_name + "/(num_iterations=" + str(num_iterations) + ",gamma=" + str(
-        gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + '_'+experiment_name+'.obj'
+        gamma) + ")" + 'shot_' + str(shot) + '_size_' + str(train_size) + '_' + experiment_name + '.obj'
     file = open(FILE_PATH, "wb")
     pickle.dump(dtr, file)
     print("SAVED MODEL TO PATH: " + FILE_PATH)
 
 
+train_data = pd.read_csv(f"../Datasets/{experiment_name}/{experiment_name}_train_data_for_LLM.csv")
+full_train_size = len(train_data)
 for size in sample_sizes:
     train(size)
-train(0, full_train=True)
-
+train(full_train_size, full_train=True)

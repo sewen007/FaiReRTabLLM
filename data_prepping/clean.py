@@ -18,7 +18,10 @@ if dadv_group == 'female':
 else:
     adv_group = 'female'
 
-data = pd.read_excel('../LAW.xlsx')
+if experiment_name == 'LAW':
+    data = pd.read_excel('../LAW.xlsx')
+else:
+    data = pd.read_csv(f'../{experiment_name}.csv')
 # read xlsx data
 if experiment_name == 'LAW':
     data = pd.read_excel('../LAW.xlsx')
@@ -32,7 +35,10 @@ seed = 43
 
 
 # select relevant columns
-gt_data = data[['doc_id', protected_feature]].copy()
+if protected_feature != '':
+    gt_data = data[['doc_id', protected_feature]].copy()
+else:
+    gt_data = data[['doc_id']].copy()
 for column in additional_columns:
     gt_data.loc[:, column] = data[column]
 gt_data.loc[:, score_column] = data[score_column]
@@ -59,6 +65,13 @@ train_data = train_data.sort_values(by=score_column, ascending=False)
 # save test and train data to csv
 test_data.to_csv(str(data_path) + f"/{experiment_name}_test_data.csv", index=False)
 
+if protected_feature == '':
+    # save test and train data to csv
+    train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data.csv", index=False)
+    test_data.to_csv(str(data_path) + f"/{experiment_name}_test_data_for_LLM.csv", index=False)
+    train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data_for_LLM.csv", index=False)
+
+    exit()
 # prepare test data for LLM
 demo_dict = {0: adv_group, 1: dadv_group}
 test_data[protected_feature] = test_data[protected_feature].replace(demo_dict)

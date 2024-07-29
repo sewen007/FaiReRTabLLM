@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import kendalltau
 
-from data_analysis import kendall_tau, NDCG
+from data_analysis import kendall_tau, NDCG, NDKL, avgExp
 
 # print working directory
 
@@ -19,10 +19,23 @@ with open('../settings.json', 'r') as f:
 start = time.time()
 
 sample_sizes = settings["GENERAL_SETTINGS"]["rank_sizes"]
-experiment_name = "LAW"
+experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
+score_column = settings["READ_FILE_SETTINGS"]["SCORE_COL"]
 
 delimiters = "_", "/", "\\", "."
 regex_pattern = '|'.join(map(re.escape, delimiters))
+protected_feature = settings["READ_FILE_SETTINGS"]["PROTECTED_FEATURE"]
+dadv_group = settings["READ_FILE_SETTINGS"]["DADV_GROUP"]
+
+feature_dict = {}
+
+if dadv_group == 'female':
+    adv_group = 'male'
+else:
+    adv_group = 'female'
+
+feature_dict[dadv_group] = 1
+feature_dict[adv_group] = 0
 
 
 def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment_name, rank_size='size_3'):
@@ -35,6 +48,8 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
 
     # list all ranked_files in the directory (not groundtruth)
     ranked_files = [f for f in ranked_folder if f.endswith('.csv') and 'ground_truth' not in f]
+
+    # get the ground truth file
     if 'ListNet' in exp_name:
         ground_truth_file = None
     else:
@@ -44,39 +59,57 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
     # create a new path by changing 'Datasets' to 'Results' in shot_path
     results_path = Path(shot_path.replace('Datasets', 'Results'))
 
+    # check if the results path exists, if not create it
     if not os.path.exists(results_path):
         os.makedirs(results_path)
     metrics_path = results_path / "metrics.csv"
 
+    # open the metrics file
     with open(metrics_path, 'w', newline='') as f_metrics:
         writer = csv.writer(f_metrics)
-        writer.writerow(["Run", "Kendall Tau"])  # Write the header once before the loop
+        # write the header
+        writer.writerow(["Run", "Kendall Tau", "NDKL", "Average Exposure"])  # Write the header once before the loop
         count = 0
         # for each file, read the inferred ranking and the ground truth ranking
         for file in ranked_files:
             file_path = path + file
             print(file_path)
             ranked_df = pd.read_csv(file_path)
+
             if 'ListNet' in exp_name:
                 ground_truth_df = ranked_df.sort_values(by='GT_score', ascending=False)
                 run_number = file.split('_')[0]
                 ranked_unique_ids = ranked_df["doc_id"].tolist()
             else:
+                # apply the feature_dict to the protected_feature column
+                ranked_df[protected_feature] = ranked_df[protected_feature].map(feature_dict)
                 ground_truth_df = pd.read_csv(path + ground_truth_file)
-                ground_truth_df = ground_truth_df.sort_values(by='ZFYA', ascending=False)
+                ground_truth_df = ground_truth_df.sort_values(by=score_column, ascending=False)
                 run_number = file.split('_')[-1].split('.')[0]
-                ranked_unique_ids = ranked_df["Student ID"].tolist()
+                if experiment_name == 'LAW':
+                    # check ig the unique_id column exists
+                    if 'Student ID' in ranked_df.columns:
+                        ranked_unique_ids = ranked_df["Student ID"].tolist()
+                    else:
+                        ranked_unique_ids = ranked_df["doc_id"].tolist()
+                else:
+                    ranked_unique_ids = ranked_df["doc_id"].tolist()
 
             gt_unique_ids = ground_truth_df["doc_id"].tolist()
+            group_ids = ranked_df[protected_feature].tolist()
 
-            # Convert items in the lists to floats
+            # Convert items in the lists to ints
             gt_unique_ids = [int(id) for id in gt_unique_ids]
             ranked_unique_ids = [int(id) for id in ranked_unique_ids]
+            group_ids = [int(id) for id in group_ids]
 
-            """ CALCULATE AND STORE KENDALL TAU"""
+            """ CALCULATE AND STORE METRICS"""
             kT_corr = kendall_tau(gt_unique_ids, ranked_unique_ids)
-            print(gt_unique_ids, ranked_unique_ids)
-            writer.writerow([run_number, kT_corr[0]])
+            ndkl = NDKL(np.array(gt_unique_ids), np.array(group_ids))
+            avg_exp = avgExp.avg_exp(np.array(ranked_unique_ids), np.array(group_ids))
+            exp_ratio = avg_exp[1] / avg_exp[0]
+            # print(gt_unique_ids, ranked_unique_ids)
+            writer.writerow([run_number, kT_corr[0], ndkl, exp_ratio])
 
             """ CALCULATE AND STORE NDCG"""
             print("Calculating NDCG...")
@@ -109,7 +142,7 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
 
                 if run_number == '1':
                     ndcg_header = ["Position"] + [f"NDCG_{number}" for number in range(1, int(run_number) + 1)]
-                    # only write on the NDCG_1 columna
+                    # only write on the NDCG_1 column
                     with open(ndcg_path, 'w') as f_ndcg:
                         print("Writing to NDCG csv.")
                         writer_ndcg = csv.writer(f_ndcg)
@@ -132,84 +165,22 @@ def CalculateResultMetrics():
         if 'llama' in experiment:
             experiment = 'meta-llama/Meta-Llama-3-8B-Instruct'
         experiment_path = folder / experiment
-        # Get the list of sizes
-        sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
-        for size in sizes:
-            size_path = experiment_path / size
-            # Get the list of shots
-            shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
-            for shot in shots:
-                shot_path = size_path / shot
-                print("Calculating metrics for shot", shot, "in experiment", experiment, "and size", size)
-                calculate_metrics_per_shot_llm(str(shot_path), str(shot), experiment, size)
-                # if 'ListNet' in experiment:
-                #     pass
-                # else:
-                #     calculate_metrics_per_shot_llm(str(shot_path), str(shot), experiment, size)
-
-
-def collate_metrics():
-    """
-    Collate the metrics from the different shots into a single CSV file
-    :return:
-    """
-    results_folder = Path("../Results/")
-    # Get the list of experiments
-    experiments = [f for f in os.listdir(results_folder) if os.path.isdir(results_folder / f)]
-    for experiment in experiments:
-        experiment_path = results_folder / experiment
-        # Get the list of sizes
-        sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
-        for size in sizes:
-            size_path = experiment_path / size
-            collated_metrics_path = str(size_path / "collated_metrics_") + str(size) + ".csv"
-            shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
-            # reorder the shots
-            shots = sorted(shots, key=lambda x: int(x.split('_')[1]))
-
-            with open(collated_metrics_path, 'w', newline='') as f_collated_metrics:
-                writer = csv.writer(f_collated_metrics)
-                # write header row corresponding to the different shots
-                writer.writerow(["Sample"] + shots)
-                # write sample column
-                # Write the rows with sample numbers and empty values for shots
-                n = 50  # number of samples
-                for i in range(1, n + 1):
-                    row = [i] + ["" for _ in shots]  # Empty strings for each shot column
-                    writer.writerow(row)
-
-            for shot in shots:
-                shot_path = size_path / shot
-                metrics_path = shot_path / "metrics.csv"
-                # read file
-                metric_df = pd.read_csv(metrics_path)
-                # sort the dataframe by the sample column
-                metric_df = metric_df.sort_values(by="Sample", ascending=True)
-                collated_metric_df = pd.read_csv(collated_metrics_path)
-                # Check if the "shot" column exists in the original DataFrame
-                if shot in collated_metric_df.columns:
-                    # Ensure the length of new values matches the length of the original DataFrame
-                    if len(metric_df) == len(collated_metric_df):
-                        # Update the "shot" column with values from the new DataFrame
-                        collated_metric_df[shot] = metric_df["Kendall Tau"].tolist()
-                    else:
-
-                        print(
-                            "The length of the collated metrics DataFrame does not match the length of the original "
-                            "DataFrame.")
-                        continue
-                else:
-                    print("The 'shot' column does not exist in the original CSV file.")
-                    continue
-
-                # Save the updated DataFrame back to the CSV file
-                collated_metric_df.to_csv(str(collated_metrics_path), index=False)
-
-    # print(experiments)
-    # print("Collating metrics...")
+        prompts = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
+        for prompt in prompts:
+            prompt_path = experiment_path / prompt
+            # Get the list of sizes
+            sizes = [f for f in os.listdir(prompt_path) if os.path.isdir(prompt_path / f)]
+            for size in sizes:
+                size_path = prompt_path / size
+                # Get the list of shots
+                shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
+                for shot in shots:
+                    shot_path = size_path / shot
+                    print("Calculating metrics for shot", shot, "in experiment", experiment, "and size", size)
+                    calculate_metrics_per_shot_llm(str(shot_path), str(shot), experiment, size)
 
 
 CalculateResultMetrics()
-#collate_metrics()
+
 end = time.time()
 # print("time taken = ", end - start)

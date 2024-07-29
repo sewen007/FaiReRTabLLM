@@ -1,15 +1,19 @@
+import json
 import os
 
 import pandas as pd
 from matplotlib import pyplot as plt
 
-# get experiment name
-experiment_name = "LAW"
+with open('../settings.json', 'r') as f:
+    settings = json.load(f)
+experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
 
 
 def Plot_Result():
     # get result folder
-    result_folder = 'Results/' + experiment_name + '/'
+    # print working directory
+    print(os.getcwd())
+    result_folder = '../Results/' + experiment_name + '/'
     # iterate through size folders in result folder
     for size_folder in os.listdir(result_folder):
         # get path of size folder
