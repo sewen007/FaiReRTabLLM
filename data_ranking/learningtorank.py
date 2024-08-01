@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 from learning2rank.rank import ListNet
+import learning_to_rank
 
 sample_number = 50
 Model = ListNet.ListNet()

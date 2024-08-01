@@ -3,10 +3,14 @@ import os
 import re
 import time
 from pathlib import Path
+
+import numpy as np
 import seaborn as sns
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.lines import Line2D
+import matplotlib.patches as patches
 
 with open('../settings.json', 'r') as f:
     settings = json.load(f)
@@ -50,88 +54,32 @@ def PlotNCollate():
                     shot_path = size_path / shot
                     print("Collating metrics for shot", shot, "in experiment", experiment, "and size", size)
 
-                    # get ndcg files
-                    ndcg_files = get_files(shot_path, 'ndcg.csv')
-                    collate_ndcgs(ndcg_files, prompt, shot, size, experiment)
+                    # get ndcg file
+                    ndcg_file_path = shot_path / 'ndcg.csv'
+                    collate_ndcgs(ndcg_file_path, prompt, shot, size, experiment)
 
-                    # get metric files
-                    metric_files = get_files(shot_path, 'metrics.csv')
-                    collate_metrics(metric_files, prompt, shot, size, experiment)
-        # # Get the list of sizes
-        # sizes = [f for f in os.listdir(experiment_path) if os.path.isdir(experiment_path / f)]
-        # for size in sizes:
-        #     size_path = experiment_path / size
-        #     # Get the list of shots
-        #     shots = [f for f in os.listdir(size_path) if os.path.isdir(size_path / f)]
-        #     if 'ListNet' in experiment:
-        #         sorted_shots = shots
-        #     else:
-        #         sorted_shots = sorted(shots, key=lambda x: int(x.split('_')[1]))
-        #     print(shots)
-        #     for shot in sorted_shots:
-        #         shot_path = size_path / shot
-        #         print("Collating metrics for shot", shot, "in experiment", experiment, "and size", size)
-        #
-        #         # # get ndcg files
-        #         ndcg_files = get_files(shot_path, 'ndcg.csv')
-        #         collate_ndcgs(ndcg_files, shot, size, experiment)
-        #
-        #         # get metric files
-        #         metric_files = get_files(shot_path, 'metrics.csv')
-        #         collate_metrics(metric_files, shot, size, experiment)
+                    # get metric file
+                    metric_file_path = shot_path / 'metrics.csv'
+                    collate_metrics(metric_file_path, prompt, shot, size, experiment)
 
 
-def collate_ndcgs(ndcg_files, prompt, shot, size, experiment):
-    for ndcg_file in ndcg_files:
+def collate_ndcgs(ndcg_file, prompt, shot, size, experiment):
+    ndcg_data = pd.read_csv(ndcg_file)
 
-        ndcg_data = pd.read_csv(ndcg_file)
+    if 'Position' in ndcg_data.columns:
+        ndcg_data = ndcg_data.drop(columns=['Position'])
 
-        if 'Position' in ndcg_data.columns:
-            ndcg_data = ndcg_data.drop(columns=['Position'])
+    if 'ListNet' in experiment:
+        sorted_columns = sorted(ndcg_data.columns, key=lambda x: int(x.split('_')[-1]))
 
-        if 'ListNet' in experiment:
-            sorted_columns = sorted(ndcg_data.columns, key=lambda x: int(x.split('_')[-1]))
-
-            # don't get average for ListNet
-            for col in sorted_columns:
-                # if 'NDCG' in col:
-                col_name = col + '\n' + size + '\n' + prompt + '\n' + experiment
-                ndcg_data[col_name] = ndcg_data[col]
-                avg_or_same_ndcg = ndcg_data[[col_name]]
-                # approximate each value to 2 decimal places
-                avg_or_same_ndcg = avg_or_same_ndcg.round(2)
-
-                # Save the results to a new CSV file
-                output_file = f'../Results/{experiment_name}/collated_ndcg.csv'
-                if not os.path.exists(output_file):
-                    avg_or_same_ndcg.to_csv(output_file, index=False)
-                else:  # read the file and append the new data
-                    collated_data = pd.read_csv(output_file)
-                    collated_data[col_name] = avg_or_same_ndcg
-                    collated_data.to_csv(output_file, index=False)
-
-                # Save the results to a new CSV file
-                output_file_with_std = f'../Results/{experiment_name}/collated_ndcg_with_std.csv'
-                if not os.path.exists(output_file_with_std):
-                    avg_or_same_ndcg.to_csv(output_file_with_std, index=False)
-                else:  # read the file and append the new data
-                    collated_data = pd.read_csv(output_file_with_std)
-                    collated_data[col_name] = avg_or_same_ndcg
-                    collated_data.to_csv(output_file_with_std, index=False)
-        else:
-
-            col_name = 'AverageNDCG_' + shot + '\n' + size + '\n' + prompt + '\n' + experiment
-
-            # Calculate the average NDCG for each position
-            ndcg_data[col_name] = ndcg_data.mean(axis=1)
-
-            # get the aggregate mean and std
-            ndcg_mean_n_std = ndcg_data.apply(lambda row: f"{row.mean():.2f} ± {row.std():.2f}", axis=1)
-
-            # Convert the Series to a DataFrame and add a column name
-            ndcg_mean_n_std_df = pd.DataFrame(ndcg_mean_n_std, columns=[col_name])
-
+        # don't get average for ListNet
+        for col in sorted_columns:
+            # if 'NDCG' in col:
+            col_name = col + '\n' + size + '\n' + prompt + '\n' + experiment
+            ndcg_data[col_name] = ndcg_data[col]
             avg_or_same_ndcg = ndcg_data[[col_name]]
+            # approximate each value to 2 decimal places
+            avg_or_same_ndcg = avg_or_same_ndcg.round(2)
 
             # Save the results to a new CSV file
             output_file = f'../Results/{experiment_name}/collated_ndcg.csv'
@@ -145,112 +93,118 @@ def collate_ndcgs(ndcg_files, prompt, shot, size, experiment):
             # Save the results to a new CSV file
             output_file_with_std = f'../Results/{experiment_name}/collated_ndcg_with_std.csv'
             if not os.path.exists(output_file_with_std):
-                ndcg_mean_n_std_df.to_csv(output_file_with_std, index=False)
+                avg_or_same_ndcg.to_csv(output_file_with_std, index=False)
             else:  # read the file and append the new data
                 collated_data = pd.read_csv(output_file_with_std)
-                collated_data[col_name] = ndcg_mean_n_std_df
+                collated_data[col_name] = avg_or_same_ndcg
                 collated_data.to_csv(output_file_with_std, index=False)
+    else:
+
+        col_name = 'AverageNDCG_' + shot + '\n' + size + '\n' + prompt + '\n' + experiment
+
+        # Calculate the average NDCG for each position
+        ndcg_data[col_name] = ndcg_data.mean(axis=1)
+
+        # get the aggregate mean and std
+        ndcg_mean_n_std = ndcg_data.apply(lambda row: f"{row.mean():.2f} ± {row.std():.2f}", axis=1)
+
+        # Convert the Series to a DataFrame and add a column name
+        ndcg_mean_n_std_df = pd.DataFrame(ndcg_mean_n_std, columns=[col_name])
+
+        avg_or_same_ndcg = ndcg_data[[col_name]]
+
+        # Save the results to a new CSV file
+        output_file = f'../Results/{experiment_name}/collated_ndcg.csv'
+        if not os.path.exists(output_file):
+            avg_or_same_ndcg.to_csv(output_file, index=False)
+        else:  # read the file and append the new data
+            collated_data = pd.read_csv(output_file)
+            collated_data[col_name] = avg_or_same_ndcg
+            collated_data.to_csv(output_file, index=False)
+
+        # Save the results to a new CSV file
+        output_file_with_std = f'../Results/{experiment_name}/collated_ndcg_with_std.csv'
+        if not os.path.exists(output_file_with_std):
+            ndcg_mean_n_std_df.to_csv(output_file_with_std, index=False)
+        else:  # read the file and append the new data
+            collated_data = pd.read_csv(output_file_with_std)
+            collated_data[col_name] = ndcg_mean_n_std_df
+            collated_data.to_csv(output_file_with_std, index=False)
 
 
-def collate_metrics(metric_files, prompt, shot, size, experiment):
-    for metric_file in metric_files:
-        metric_data = pd.read_csv(metric_file)
+def collate_metrics(metric_file, prompt, shot, size, experiment):
+    metric_data = pd.read_csv(metric_file)
 
-        if 'ListNet' in experiment:
-            # sort rows in ascending order
-            metric_data = metric_data.sort_values(by='Run', ascending=True)
+    output_file = f'../Results/{experiment_name}/collated_metrics.csv'
+    output_file_with_std = f'../Results/{experiment_name}/collated_metrics_with_std.csv'
+    row_names = ['Kendall Tau', 'NDKL', 'Average Exposure']
+    # if output file does not exist, create it
+    if not os.path.exists(output_file):
+        # Initialize the DataFrame with the row names
+        output_df = pd.DataFrame(index=row_names)
+    else:
+        output_df = pd.read_csv(output_file, index_col=0)
+    if not os.path.exists(output_file_with_std):
+        output_df_with_std = pd.DataFrame(index=row_names)
+    else:
+        output_df_with_std = pd.read_csv(output_file_with_std, index_col=0)
 
-            # iterate through rows
-            for i in range(len(metric_data)):
-                # get the row
-                row = metric_data.iloc[i]
+    if 'ListNet' in experiment:
 
-                # get the run number
-                train_size = int(row['Run'])
-                col_name = f'KT_train_size_{train_size}' + '\n' + size + '\n' + prompt + '\n' + experiment
-                col_NDKL = f'NDKL_train_size_{train_size}' + '\n' + size + '\n' + prompt + '\n' + experiment
-                col_avgExp = f'AvgExp_train_size_{train_size}' + '\n' + size + '\n' + prompt + '\n' + experiment
-                kT_value = round(row['Kendall Tau'], 2)
-                NDKL_value = row['NDKL']
-                avg_Exp = row['Average Exposure']
+        # sort the rows in ascending order
+        metric_data = metric_data.sort_values(by='Run', ascending=True)
 
-                # round to 2 decimal places
-                # kT_value = round(kT_value, 2)
+        # iterate through rows
+        for i in range(len(metric_data)):
+            # get the row
+            row = metric_data.iloc[i]
 
-                # create new data frame with the mean value
-                output_df = pd.DataFrame(columns=[col_name])
-                output_df[col_name] = row['Kendall Tau']
-                output_df[col_NDKL] = NDKL_value
-                output_df[col_avgExp] = avg_Exp
+            # get the run number
+            train_size = int(row['Run'])
+            col_name = f'{train_size}' + '\n' + size + '\n' + prompt + '\n' + experiment
+            kT_value = row['Kendall Tau']
+            NDKL_value = row['NDKL']
+            avg_Exp = row['Average Exposure']
 
-                # Save the results to a new CSV file
-                output_file = f'../Results/{experiment_name}/collated_metrics.csv'
-                if not os.path.exists(output_file):
-                    output_df[col_name].to_csv(output_file, index=False)
-                else:  # read the file and append the new data
-                    collated_data = pd.read_csv(output_file)
-                    collated_data[col_name] = [kT_value]
-                    collated_data[col_NDKL] = [NDKL_value]
-                    collated_data[col_avgExp] = [avg_Exp]
-                    collated_data.to_csv(output_file, index=False)
+            # add new columns to the output dataframes
+            output_df[col_name] = np.nan
 
-                # Save the results to a new CSV file
-                output_file_with_std = f'../Results/{experiment_name}/collated_metrics_with_std.csv'
-                if not os.path.exists(output_file_with_std):
-                    output_df[col_name].to_csv(output_file_with_std, index=False)
-                else:  # read the file and append the new data
-                    collated_data = pd.read_csv(output_file_with_std)
-                    collated_data[col_name] = [kT_value]
-                    collated_data[col_NDKL] = [NDKL_value]
-                    collated_data[col_avgExp] = [avg_Exp]
-                    collated_data.to_csv(output_file_with_std, index=False)
-
-        else:
-
-            col_name = 'KT_' + shot + '\n' + size + '\n' + prompt + '\n' + experiment
-            col_NDKL = 'NDKL_' + shot + '\n' + size + '\n' + prompt + '\n' + experiment
-            col_avgExp = 'AvgExp_' + shot + '\n' + size + '\n' + prompt + '\n' + experiment
-
-            kT_mean = metric_data['Kendall Tau'].mean()
-            kT_std = metric_data['Kendall Tau'].std()
-            NDKL_mean = metric_data['NDKL'].mean()
-            NDKL_std = metric_data['NDKL'].std()
-            avg_Exp_mean = metric_data['Average Exposure'].mean()
-            avg_Exp_std = metric_data['Average Exposure'].std()
-
-            # create new data frame with the mean value
-            output_df = pd.DataFrame(columns=[col_name, col_NDKL])
-            output_df[col_name] = [kT_mean]
-            output_df[col_NDKL] = [NDKL_mean]
-            output_df[col_avgExp] = [avg_Exp_mean]
-
-            # create new data frame with the mean and std value
-            output_df_with_std = pd.DataFrame(columns=[col_name, col_NDKL])
-            output_df_with_std[col_name] = [f"{kT_mean:.2f} ± {kT_std:.2f}"]
-            output_df_with_std[col_NDKL] = [f"{NDKL_mean:.2f} ± {NDKL_std:.2f}"]
-            output_df_with_std[col_avgExp] = [f"{avg_Exp_mean:.2f} ± {avg_Exp_std:.2f}"]
+            # write column values to the output dataframes
+            output_df.loc['Kendall Tau', col_name] = kT_value
+            output_df.loc['NDKL', col_name] = NDKL_value
+            output_df.loc['Average Exposure', col_name] = avg_Exp
 
             # Save the results to a new CSV file
             output_file = f'../Results/{experiment_name}/collated_metrics.csv'
-            if not os.path.exists(output_file):
-                output_df.to_csv(output_file, index=False)
-            else:  # read the file and append the new data
-                collated_data = pd.read_csv(output_file)
-                collated_data[col_name] = [kT_mean]
-                collated_data[col_NDKL] = [NDKL_mean]
-                collated_data[col_avgExp] = [avg_Exp_mean]
-                collated_data.to_csv(output_file, index=False)
+            output_df.to_csv(output_file, index=True)
+    else:  # not ListNet
+        col_name = f'{shot}' + '\n' + size + '\n' + prompt + '\n' + experiment
+        kT_mean = metric_data['Kendall Tau'].mean()
+        kT_std = metric_data['Kendall Tau'].std()
+        NDKL_mean = metric_data['NDKL'].mean()
+        NDKL_std = metric_data['NDKL'].std()
+        avg_Exp_mean = metric_data['Average Exposure'].mean()
+        avg_Exp_std = metric_data['Average Exposure'].std()
 
-            # Save the results to a new CSV file
-            output_file_with_std = f'../Results/{experiment_name}/collated_metrics_with_std.csv'
-            if not os.path.exists(output_file_with_std):
-                output_df_with_std.to_csv(output_file_with_std, index=False)
-            else:  # read the file and append the new data
-                collated_data = pd.read_csv(output_file_with_std)
-                collated_data[col_name] = [f"{kT_mean:.2f} ± {kT_std:.2f}"]
-                collated_data[col_NDKL] = [f"{NDKL_mean:.2f} ± {NDKL_std:.2f}"]
-                collated_data[col_avgExp] = [f"{avg_Exp_mean:.2f} ± {avg_Exp_std:.2f}"]
-                collated_data.to_csv(output_file_with_std, index=False)
+        # add new columns to the output dataframes
+        output_df[col_name] = np.nan
+        output_df_with_std[col_name] = np.nan
+
+        # write column values to the output dataframes
+        output_df.loc['Kendall Tau', col_name] = kT_mean
+        output_df.loc['NDKL', col_name] = NDKL_mean
+        output_df.loc['Average Exposure', col_name] = avg_Exp_mean
+
+        output_df_with_std.loc['Kendall Tau', col_name] = f"{kT_mean:.2f} ± {kT_std:.2f}"
+        output_df_with_std.loc['NDKL', col_name] = f"{NDKL_mean:.2f} ± {NDKL_std:.2f}"
+        output_df_with_std.loc['Average Exposure', col_name] = f"{avg_Exp_mean:.2f} ± {avg_Exp_std:.2f}"
+        # Save the results to a new CSV file
+        output_file_with_std = f'../Results/{experiment_name}/collated_metrics_with_std.csv'
+        output_df_with_std.to_csv(output_file_with_std, index=True)
+
+        # Save the results to a new CSV file
+        output_file = f'../Results/{experiment_name}/collated_metrics.csv'
+        output_df.to_csv(output_file, index=True)
 
 
 def plot_ndcgs():
@@ -260,18 +214,24 @@ def plot_ndcgs():
     collated_data = pd.read_csv(f'../Results/{experiment_name}/collated_ndcg.csv')
 
     # Determine which columns contain 'gpt' and 'llama'
-    gpt_columns = [col for col in collated_data.columns if 'gpt' in col.lower()]
-    llama_columns = [col for col in collated_data.columns if 'llama' in col.lower()]
+    gpt_columns_0 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_0' in col.lower()]
+    llama_columns_0 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_0' in col.lower()]
+    gpt_columns_1 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_1' in col.lower()]
+    llama_columns_1 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_1' in col.lower()]
 
     for idx, row in collated_data.iterrows():
         fig, ax = plt.subplots(figsize=(12, 8))
 
         # Plot each column individually with specified colors
         for col in collated_data.columns:
-            if col in gpt_columns:
+            if col in gpt_columns_0:
                 color = '#F00000'
-            elif col in llama_columns:
+            elif col in llama_columns_0:
                 color = '#3D6D9E'
+            elif col in gpt_columns_1:
+                color = 'pink'
+            elif col in llama_columns_1:
+                color = 'skyblue'
             else:
                 color = '#FFC725'
 
@@ -279,15 +239,155 @@ def plot_ndcgs():
 
         # Set the title and labels
         plt.title(f'NDCG at {idx + 1} for each model, {experiment_name}')
-        plt.xlabel('Models')
+        plt.xlabel('LLM shots and LTR training sizes')
         plt.ylabel('NDCG')
         plt.tight_layout()
+        # new labels
+        ax.set_xticklabels([get_label(col) for col in collated_data.columns])
         plt.xticks(rotation=90, ha='center')
         # Save the plot as a PDF file with the specified naming convention
         plt.savefig(write_folder / f'NDCG_at_{idx + 1}_Bar_Chart.png', bbox_inches='tight')
+        # # Extract the handles and labels from the original plot
+        # handles, labels = ax.get_legend_handles_labels()
 
-        # Close the plot to free memory
+        # Close
         plt.close()
+    # # Create a new figure to contain just the legend
+    # legend_fig, legend_ax = plt.subplots()
+    # legend = legend_ax.legend(handles=handles, labels=labels, ncol=4, loc='center')
+    # legend_ax.axis('off')
+    #
+    # # Step 4: Save the legend as an image file
+    # legend_fig.savefig(write_folder / f'legend_ndcg.pdf', bbox_inches='tight')
+    # plt.close(legend_fig)
+
+
+def plot_legend():
+    # Create a separate figure and axis for the legend
+    figsize = (2, 1)
+    legend_fig, legend_ax = plt.subplots(figsize=figsize)
+    lw = 1
+    markersize = 8
+
+    legend_items = [patches.Rectangle((0, 0), 1, 1, edgecolor='#F00000', facecolor='#F00000', linewidth=2, linestyle='-',
+                                      label='gpt-3.5-turbo, neutral'),
+                    patches.Rectangle((0, 0), 1, 1, edgecolor='pink', facecolor='pink', linewidth=2,
+                                      linestyle='-',
+                                      label='gpt-3.5-turbo, sensitive'),
+
+                    patches.Rectangle((0, 0), 1, 1, edgecolor='#3D6D9E', facecolor='#3D6D9E', linewidth=2,
+                                      linestyle='-',
+                                      label='meta-llama/Meta-Llama-3-8B-Instruct, neutral'),
+
+
+                    patches.Rectangle((0, 0), 1, 1, edgecolor='skyblue', facecolor='skyblue', linewidth=2,
+                                      linestyle='-',
+                                      label='meta-llama/Meta-Llama-3-8B-Instruct, sensitive'),
+                    patches.Rectangle((0, 0), 1, 1, edgecolor='#FFC725', facecolor='#FFC725', linewidth=2,
+                                      linestyle='-',
+                                      label='ListNet')
+
+    ]
+    # plt.text(-0.05, 0.47, 'Legend', fontsize=10, weight='bold')
+    ncol = 1
+    plt.axis('off')
+
+    # Add the legend to the separate legend axis
+    legend_ax.legend(handles=legend_items, loc='center', ncol=ncol, edgecolor='k')
+    plt.tight_layout()
+    write_folder = Path(f"../Plots/{experiment_name}")
+
+    plt.savefig(write_folder / f'legend_gen.png', bbox_inches='tight')
+
+
+def plot_metrics():
+    """Plots Kendall Tau, NDKL and Average Exposure"""
+    write_folder = Path(f"../Plots/{experiment_name}")
+    if not os.path.exists(write_folder):
+        os.makedirs(write_folder)
+
+    collated_data = pd.read_csv(f'../Results/{experiment_name}/collated_metrics.csv')
+    # make first column the index
+    collated_data = collated_data.set_index(collated_data.columns[0])
+
+    # Determine which columns contain 'gpt' and 'llama'
+    gpt_columns_0 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_0' in col.lower()]
+    llama_columns_0 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_0' in col.lower()]
+    gpt_columns_1 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_1' in col.lower()]
+    llama_columns_1 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_1' in col.lower()]
+
+    # plot each row of metrics: Kendall Tau, NDKL, Average Exposure
+    # first plot the kendall tau row
+    fig, ax = plt.subplots(figsize=(12, 8))
+    for col in collated_data.columns:
+        if col in gpt_columns_0:
+            color = '#F00000'
+        elif col in llama_columns_0:
+            color = '#3D6D9E'
+        elif col in gpt_columns_1:
+            color = 'pink'
+        elif col in llama_columns_1:
+            color = 'skyblue'
+        else:
+            color = '#FFC725'
+        ax.bar(col, collated_data.loc['Kendall Tau', col], color=color, label=col.split('\n')[0])
+    plt.title(f'Kendall Tau for each model, {experiment_name}')
+    plt.xlabel('LLM shots and LTR training sizes')
+    plt.ylabel('Kendall Tau')
+    plt.tight_layout()
+    ax.set_xticklabels([get_label(col) for col in collated_data.columns])
+    plt.xticks(rotation=90, ha='center')
+    plt.savefig(write_folder / f'Kendall_Tau_Bar_Chart.png', bbox_inches='tight')
+    plt.close()
+
+    # plot the NDKL row
+    fig, ax = plt.subplots(figsize=(12, 8))
+    for col in collated_data.columns:
+        if col in gpt_columns_0:
+            color = '#F00000'
+        elif col in llama_columns_0:
+            color = '#3D6D9E'
+        elif col in gpt_columns_1:
+            color = 'pink'
+        elif col in llama_columns_1:
+            color = 'skyblue'
+        else:
+            color = '#FFC725'
+        test = col.split('\n')[0]
+        ax.bar(col, collated_data.loc['NDKL', col], color=color, label=col.split('\n')[0])
+    plt.title(f'NDKL for each model, {experiment_name}')
+    plt.xlabel('LLM shots and LTR training sizes')
+    plt.ylabel('NDKL')
+    plt.tight_layout()
+
+    ax.set_xticklabels([get_label(col) for col in collated_data.columns])
+    plt.xticks(rotation=90, ha='center')
+    plt.savefig(write_folder / f'NDKL_Bar_Chart.png', bbox_inches='tight')
+    ax.legend()
+    plt.close()
+
+    # plot the Average Exposure row
+    fig, ax = plt.subplots(figsize=(12, 8))
+    for col in collated_data.columns:
+        if col in gpt_columns_0:
+            color = '#F00000'
+        elif col in llama_columns_0:
+            color = '#3D6D9E'
+        elif col in gpt_columns_1:
+            color = 'pink'
+        elif col in llama_columns_1:
+            color = 'skyblue'
+        else:
+            color = '#FFC725'
+        ax.bar(col, collated_data.loc['Average Exposure', col], color=color, label=col.split('\n')[0])
+    plt.title(f'Average Exposure for each model, {experiment_name}')
+    plt.xlabel('LLM shots and LTR training sizes')
+    plt.ylabel('Average Exposure')
+    plt.tight_layout()
+    ax.set_xticklabels([get_label(col) for col in collated_data.columns])
+    plt.xticks(rotation=90, ha='center')
+    plt.savefig(write_folder / f'Average_Exposure_Bar_Chart.png', bbox_inches='tight')
+    plt.close()
 
 
 # Function to extract mean from "mean ± std" format
@@ -306,13 +406,21 @@ def plot_ndcg_across():
     # # plot each column as a line plot with different colors on the same plot.
     # # Use red for GPT, blue for LLAMA, and yellow for the rest
     # Add markers to each line. iterate through the following markers '*,o,^,s,P,X,D'
+    gpt_columns_0 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_0' in col.lower()]
+    llama_columns_0 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_0' in col.lower()]
+    gpt_columns_1 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_1' in col.lower()]
+    llama_columns_1 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_1' in col.lower()]
     markers = ['*', 'o', '^', 's', 'P', 'X', 'D', 'H', 'v', '<', '>']
     fig, ax = plt.subplots(figsize=(12, 8))
     for col in collated_data.columns:
-        if 'gpt' in col.lower():
+        if col in gpt_columns_0:
             color = '#F00000'
-        elif 'llama' in col.lower():
+        elif col in llama_columns_0:
             color = '#3D6D9E'
+        elif col in gpt_columns_1:
+            color = 'pink'
+        elif col in llama_columns_1:
+            color = 'skyblue'
         else:
             color = '#FFC725'
         # iterate through the markers as they are used up
@@ -339,53 +447,23 @@ def plot_ndcg_across():
     legend_ax.axis('off')
 
     # Step 4: Save the legend as an image file
-    legend_fig.savefig(plot_folder / f'legend.png', bbox_inches='tight')
+    legend_fig.savefig(plot_folder / f'legend.pdf', bbox_inches='tight')
     plt.close(legend_fig)
 
-    # # plot each column as a line plot with different colors on the same plot.
-    # # Use red for GPT, blue for LLAMA, and yellow for the rest
-    # fig, ax = plt.subplots(figsize=(12, 8))
-    # for col in collated_data.columns:
-    #     if 'gpt' in col.lower():
-    #         color = '#F00000'
-    #     elif 'llama' in col.lower():
-    #         color = '#3D6D9E'
-    #     else:
-    #         color = '#FFC725'
-    #     ax.plot(collated_data[col], label=col, color=color)
-    # plt.title(f'NDCG across different positions')
-    # plt.xlabel('Positions')
-    # plt.ylabel('NDCG')
-    # plt.legend()
-    # plt.tight_layout()
-    # plt.xticks(rotation=90, ha='center')
-    # plt.savefig(plot_folder / f'NDCG_Across_Line_Chart_2.png', bbox_inches='tight')
 
-    # # plot each column as a line plot with different colors on the same plot
-    # fig, ax = plt.subplots(figsize=(12, 8))
-    # for col in collated_data.columns:
-    #     ax.plot(collated_data[col], label=col)
-    # plt.title(f'NDCG across different positions')
-    # plt.xlabel('Positions')
-    # plt.ylabel('NDCG')
-    # plt.legend()
-    # plt.tight_layout()
-    # plt.xticks(rotation=90, ha='center')
-    # plt.savefig(plot_folder / f'NDCG_Across_Line_Chart.png', bbox_inches='tight')
-    # plt.close()
-
-    # plot each column as a line plot with different colors
-    # for col in collated_data.columns:
-    #     fig, ax = plt.subplots(figsize=(12, 8))
-    #     ax.plot(collated_data[col], label=col)
-    #     plt.title(f'NDCG across different positions for {col}')
-    #     plt.xlabel('Positions')
-    #     plt.ylabel('NDCG')
-    #     plt.legend()
-    #     plt.tight_layout()
-    #     plt.xticks(rotation=90, ha='center')
-    #     plt.savefig(plot_folder / f'_Line_Chart.png', bbox_inches='tight')
-    #     #plt.close()
+# Function to determine new labels based on substrings
+def get_label(column_name):
+    # look for text "shot in the column name and extract the number"
+    if 'shot' in column_name:
+        if 'NDCG' in column_name:
+            return (column_name.split('\n')[0]).split('NDCG_')[1]
+        else:
+            return column_name.split('\n')[0]
+    else:
+        if 'NDCG' in column_name:
+            return (column_name.split('\n')[0]).split('NDCG_')[1]
+        else:
+            return 'train_size_'+ str(column_name.split('\n')[0])
 
 
 def PlotLoss():
@@ -424,9 +502,37 @@ def PlotLoss():
         plt.close()
 
 
-PlotNCollate()
-# plot_ndcgs()
-# plot_ndcg_across()
+def plot_gt_graphs():
+    read_path = Path(f"../Results/{experiment_name}/Tests/50")
+    write_folder = Path(f"../Plots/{experiment_name}/GroundTruth")
+    if not os.path.exists(write_folder):
+        os.makedirs(write_folder)
+
+    metric_file = read_path / "metrics.csv"
+    ndcg_file = read_path / "ndcg.csv"
+    metric_data = pd.read_csv(metric_file)
+    ndcg_data = pd.read_csv(ndcg_file)
+
+    # plot ndcg line graph
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    ax.plot(ndcg_data['NDCG'])
+    plt.title(f'GT NDCG for each position, {experiment_name}')
+    plt.xlabel('Positions')
+    plt.ylabel('NDCG')
+    plt.tight_layout()
+    # save plot
+    plt.savefig(write_folder / f'NDCG_Line_Chart.png', bbox_inches='tight')
+
+    return
+
+
+#PlotNCollate()
+#plot_ndcgs()
+#plot_legend()
+#plot_ndcg_across()
+#plot_metrics()
+#plot_gt_graphs()
 
 #PlotLoss()
 

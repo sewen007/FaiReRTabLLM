@@ -180,7 +180,60 @@ def CalculateResultMetrics():
                     calculate_metrics_per_shot_llm(str(shot_path), str(shot), experiment, size)
 
 
+def calculate_gt_metrics():
+    t_t = ['Tests', 'Train']
+    for t in t_t:
+        # get test files
+        test_files = [f for f in os.listdir(f"../Datasets/{experiment_name}/{t}") if f.endswith('.csv') and '50' in f]
+        # get size
+
+        for file in test_files:
+            size = (test_files[0].split('_')[2]).split('.')[0]
+            # read file
+            test_data = pd.read_csv(f"../Datasets/{experiment_name}/{t}/{file}")
+            # sort by score
+            test_data = test_data.sort_values(by=score_column, ascending=False)
+            # apply the feature_dict to the protected_feature column
+            test_data[protected_feature] = test_data[protected_feature].map(feature_dict)
+            # create results folder
+            results_path = Path(f"../Results/{experiment_name}/{t}/{size}")
+            if not os.path.exists(results_path):
+                os.makedirs(results_path)
+            metrics_path = results_path / "metrics.csv"
+            ndcg_path = results_path / "ndcg.csv"
+
+            gt_unique_ids = test_data["doc_id"].tolist()
+            group_ids = test_data[protected_feature].tolist()
+            kT_corr = kendall_tau(gt_unique_ids, gt_unique_ids)
+            ndkl = NDKL(np.array(gt_unique_ids), np.array(group_ids))
+            avg_exp = avgExp.avg_exp(np.array(gt_unique_ids), np.array(group_ids))
+            if len(avg_exp) == 1:
+                exp_ratio = avg_exp[0]
+            else:
+                exp_ratio = avg_exp[1] / avg_exp[0]
+
+            # open the metrics file
+            with open(metrics_path, 'w', newline='') as f_metrics:
+                writer = csv.writer(f_metrics)
+                # write the header
+                writer.writerow(["Kendall Tau", "NDKL", "Average Exposure"])
+                writer.writerow([kT_corr[0], ndkl, exp_ratio])
+
+            # open the NDCG file
+            with open(ndcg_path, 'w', newline='') as f_ndcg:
+                writer_ndcg = csv.writer(f_ndcg)
+                writer_ndcg.writerow(["Position", "NDCG"])
+                GT_score = np.array(test_data.iloc[:, -1])
+                GT_score_normalized = (GT_score - np.min(GT_score)) / (np.max(GT_score) - np.min(GT_score))
+                ndcg_data = []
+                for i in range(1, len(test_data) + 1):
+                    ndcg = NDCG(np.array(test_data.iloc[:, 0]), GT_score_normalized, i)
+                    ndcg_data.append([i, ndcg])
+                writer_ndcg.writerows(ndcg_data)
+
+
 CalculateResultMetrics()
+#calculate_gt_metrics()
 
 end = time.time()
 # print("time taken = ", end - start)

@@ -14,7 +14,7 @@ import pandas as pd
 os.environ['TRANSFORMERS_CACHE'] = '/scratch/shared/models/'
 
 start = time.time()
-
+torch.cuda.empty_cache()
 # variables for GPT
 api_key = "sk-proj-BKhsxjRDcvt4ZBzlM63pT3BlbkFJlmacaHE8VVdLZwGhmV1P"
 
@@ -341,11 +341,10 @@ def generate_base(prompt_id):  # hardcoded for now. Considering having multiple 
 # for prmpt_id in prmpt_ids:
 #     for shot in shots:
 #         RankWithLLM("gpt-3.5-turbo", shot, 5, 50, prompt_id=prmpt_id)
-prmpt_ids = [0, 1]
+prmpt_ids = [1]
 for prmpt_id in prmpt_ids:
     for shot in shots:
         RankWithLLM("meta-llama/Meta-Llama-3-8B-Instruct", shot, 5, 50, prompt_id=prmpt_id)
-
 
 # for shot in shots:
 #     RankWithLLM("meta-llama/Meta-Llama-3-8B-Instruct", shot, 5, 50)

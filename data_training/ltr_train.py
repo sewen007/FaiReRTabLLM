@@ -21,7 +21,7 @@ if dadv_group == 'female':
     adv_group = 'male'
 else:
     adv_group = 'female'
-demo_dict = {adv_group: 1, dadv_group: 0}
+demo_dict = {adv_group: 0, dadv_group: 1}
 
 shot = 1
 
