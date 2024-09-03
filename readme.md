@@ -1,13 +1,13 @@
 The test sets for the LLMs are the same
 
 order of running the code:
-# clean
+# clean - clean.py if needed
 # prep
 # llmrank
 # train
 # rank
 # calculate_metrics
-# plot
+# plot in data_viz
 # visualize_tables
 
 

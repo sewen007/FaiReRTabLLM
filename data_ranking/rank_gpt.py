@@ -31,6 +31,7 @@ class OpenaiClient:
                 time.sleep(0.1)
         if return_text:
             completion = completion.choices[0].message.content
+        print('completion', completion)
         return completion
 
     def text(self, *args, return_text=False, reduce_length=False, **kwargs):
@@ -53,7 +54,7 @@ class OpenaiClient:
 
 def get_prefix_prompt(query, num):
     return [{'role': 'system',
-             'content': "You are RankGPT, an intelligent assistant that can rank items based on their relevancy to "
+             'content': "You are an intelligent assistant that can rank items based on their relevancy to "
                         "the query."},
             {'role': 'user',
              'content': f"I will provide you with a list of {num} items, each item having feature values and each item "
@@ -77,7 +78,7 @@ def create_permutation_instruction(item=None, rank_start=0, rank_end=50):
         content = content.strip()
         content = ' '.join(content.split()[:int(max_length)])
         messages.append({'role': 'user', 'content': f"[{rank}] {content}"})
-        messages.append({'role': 'assistant', 'content': f'Received passage [{rank}].'})
+        # messages.append({'role': 'assistant', 'content': f'Received item [{rank}].'})
     messages.append({'role': 'user', 'content': get_post_prompt(query, num)})
 
     return messages
@@ -86,14 +87,14 @@ def create_permutation_instruction(item=None, rank_start=0, rank_end=50):
 def run_llm(messages, api_key=None, model_name="gpt-3.5-turbo"):
     Client = OpenaiClient
     agent = Client(api_key)
-    response = agent.chat(model=model_name, messages=messages, temperature=0, return_text=True)
+    response = agent.chat(model=model_name, messages=messages, temperature=0.1, return_text=True)
     return response
 
 
 def get_post_prompt(query, num):
     return (f"Search Query: {query}. \nRank the {num} items based on their relevance to the search "
-            f"query. The items should be listed in descending order using identifiers. The most relevant passages "
-            f"should be listed first. The output format should be [] > [], e.g., [1] > [2]. Only response the ranking "
+            f"query. The items should be listed in descending order using identifiers. The most relevant items "
+            f"should be listed first. The output format should be [] > [], e.g., [1] > [2]. Only return the ranking "
             f"results, do not say any word or explain.")
 
 

@@ -12,6 +12,9 @@ with open('../settings.json', 'r') as f:
 experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
 rank_sizes = settings["GENERAL_SETTINGS"]["rank_sizes"]
 shots = settings["GENERAL_SETTINGS"]["shots"]
+score_column = settings["READ_FILE_SETTINGS"]["SCORE_COL"]
+
+random.seed(123)
 
 
 def prep_LLM_data(size=50, sh=1):
@@ -29,8 +32,15 @@ def prep_LLM_data(size=50, sh=1):
     if sh == 0:
         return
     train_data = pd.read_csv(f"../Datasets/{experiment_name}/{experiment_name}_train_data_for_LLM.csv")
-    random_indices = sorted(random.sample(range(len(train_data)), int(size)))
+    # random_indices = sorted(random.sample(range(len(train_data)), int(size)))
+    # train_df = train_data.iloc[random_indices]
+
+    random_indices = random.sample(range(len(train_data)), int(10 * size))
     train_df = train_data.iloc[random_indices]
+    train_df = train_df.iloc[((sh - 1) * size):(sh * size)]
+
+    # sort by score
+    train_df = train_df.sort_values(by=score_column, ascending=False)
     train_df.to_csv(f"../Datasets/{experiment_name}/Train/rank_size_{size}_shot_{sh}.csv", index=False)
 
 

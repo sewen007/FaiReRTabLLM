@@ -16,7 +16,7 @@ dadv_group = settings["READ_FILE_SETTINGS"]["DADV_GROUP"]
 num_iterations = settings["TRAINING_SETTINGS"]["HYPERPARAMETERS"]["NUM_ITERATIONS"]
 protected_feature = settings["READ_FILE_SETTINGS"]["PROTECTED_FEATURE"]
 score_col = settings["READ_FILE_SETTINGS"]["SCORE_COL"]
-experiment_name = 'LAW'
+experiment_name = os.path.basename(settings["READ_FILE_SETTINGS"]["PATH"]).split('.')[0]
 model_name = 'ListNet'
 if dadv_group == 'female':
     adv_group = 'male'
@@ -37,7 +37,7 @@ def get_files(directory):
 
 
 # size in models represent training size for the model
-all_models = get_files(f'../Models/')
+all_models = get_files(f'../Models/{experiment_name}/')
 models = [model for model in all_models if str(num_iterations) in model]
 
 

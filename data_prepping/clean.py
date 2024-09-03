@@ -1,7 +1,6 @@
 import json
 import os
 from pathlib import Path
-
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
@@ -84,3 +83,53 @@ train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data_for_LLM.csv",
 # clean train data for training (not LLM)
 train_data = train_data.drop(['doc_id'], axis=1)
 train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data.csv", index=False)
+
+
+#######################################################################################
+# temp prep
+# for data gotten from previous hoitr experiments
+
+# no need to set the advantaged and disadvantaged groups
+# read test and train data
+# test_data = pd.read_csv(f'../../LLMFairRank/Datasets/{experiment_name}/Testing_{experiment_name}.csv')
+# train_data = pd.read_csv(f'../../LLMFairRank/Datasets/{experiment_name}/Training_{experiment_name}.csv')
+#
+#
+# # no need to do the gender dict swap
+# # no need to create doc_id. Rather delete q_id column
+# test_data = test_data.drop(['q_id'], axis=1)
+# train_data = train_data.drop(['q_id'], axis=1)
+#
+# # data is already sorted based on score column
+#
+# """ DIRECTORY MANAGEMENT """
+# data_path = Path("../../LLMFairRank/Datasets/" + experiment_name + '/')
+#
+# # data is already split and saved in full format
+#
+# # drop columns that has "Name" in it
+# train_data = train_data.drop(train_data.filter(like='Name').columns, axis=1)
+# test_data = test_data.drop(test_data.filter(like='Name').columns, axis=1)
+#
+# # save test data as str(data_path) + f"/{experiment_name}_test_data.csv
+# test_data.to_csv(str(data_path) + f"/{experiment_name}_test_data.csv", index=False)
+#
+# if protected_feature == '':
+#     # save test and train data to csv
+#     train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data.csv", index=False)
+#     test_data.to_csv(str(data_path) + f"/{experiment_name}_test_data_for_LLM.csv", index=False)
+#     train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data_for_LLM.csv", index=False)
+#
+#     exit()
+# # prepare test data for LLM
+# demo_dict = {0: adv_group, 1: dadv_group}
+# test_data[protected_feature] = test_data[protected_feature].replace(demo_dict)
+# test_data.to_csv(str(data_path) + f"/{experiment_name}_test_data_for_LLM.csv", index=False)
+#
+# # prepare train data for LLM
+# train_data[protected_feature] = train_data[protected_feature].replace(demo_dict)
+# train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data_for_LLM.csv", index=False)
+#
+# # clean train data for training (not LLM)
+# train_data = train_data.drop(['doc_id'], axis=1)
+# train_data.to_csv(str(data_path) + f"/{experiment_name}_train_data.csv", index=False)

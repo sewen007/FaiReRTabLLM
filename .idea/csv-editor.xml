@@ -3,7 +3,77 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\Datasets\LAW\LAW_data.csv">
+        <entry key="\Datasets-0805\LAW\LAW_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\LAW\LAW_test_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\LAW\LAW_train_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\bostonmarathon\bostonmarathon_test_data_for_LLM.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\bostonmarathon\bostonmarathon_train_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\bostonmarathon\bostonmarathon_train_data_for_LLM.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets-0805\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\COMPASSEX\Testing_COMPASSEX.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\COMPASSEX\Training_COMPASSEX.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -38,91 +108,98 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\ListNet\prompt_NA\rank_size_50\shot_NA\100_ranked.csv">
+        <entry key="\Datasets\LAW\Ranked\ListNet\prompt_NA\rank_size_20\shot_NA\4359_ranked.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\ListNet\prompt_NA\rank_size_50\shot_NA\4359_ranked.csv">
+        <entry key="\Datasets\LAW\Tests\rank_size_20.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\ListNet\prompt_NA\rank_size_50\shot_NA\50_ranked.csv">
+        <entry key="\Datasets\LAW\Train\rank_size_5_shot_1.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\ground_truth.csv">
+        <entry key="\Datasets\NBAWNBA\Testing_NBAWNBA.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\ranked_data_1.csv">
+        <entry key="\Datasets\NBAWNBA\Training_NBAWNBA.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\ranked_data_2.csv">
+        <entry key="\Datasets\bostonmarathon\Testing_bostonmarathon.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\ranked_data_4.csv">
+        <entry key="\Datasets\bostonmarathon\Tests\rank_size_20.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\ranked_data_5.csv">
+        <entry key="\Datasets\bostonmarathon\Tests\rank_size_50.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_1\rank_size_50\shot_0\ground_truth.csv">
+        <entry key="\Datasets\bostonmarathon\Train\rank_size_50_shot_1.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Ranked\gpt-3.5-turbo\prompt_1\rank_size_50\shot_0\ranked_data_1.csv">
+        <entry key="\Datasets\bostonmarathon\Training_bostonmarathon.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Tests\rank_size_50.csv">
+        <entry key="\Datasets\bostonmarathon\bostonmarathon_test_data.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Train\rank_size_50_shot_1.csv">
+        <entry key="\Datasets\bostonmarathon\bostonmarathon_test_data_for_LLM.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\Datasets\LAW\Train\rank_size_50_shot_2.csv">
+        <entry key="\Datasets\bostonmarathon\bostonmarathon_train_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\bostonmarathon\bostonmarathon_train_data_for_LLM.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -137,6 +214,118 @@
           </value>
         </entry>
         <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_0\ranked_data_5.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_1\ground_truth.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_1\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\gpt-3.5-turbo\rank_size_50\shot_1\ranked_data_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_0\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_0\ranked_data_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_0\ranked_data_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_0\ranked_data_4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\ranked_data_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\ranked_data_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\ranked_data_4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\dummy\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\rank_size_50\shot_1\ranked_data_5.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -158,6 +347,146 @@
           </value>
         </entry>
         <entry key="\Datasets\dummy\dummy_train_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_0\ground_truth.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_0\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_1\ground_truth.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_1\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_3\ground_truth.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_3\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_4\ground_truth.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_4\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Ranked\gpt-3.5-turbo\prompt_0\rank_size_20\shot_5\ranked_data_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Tests\rank_size_20.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Train\rank_size_20_shot_1.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Train\rank_size_20_shot_2.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Train\rank_size_20_shot_3.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Train\rank_size_20_shot_4.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\Train\rank_size_20_shot_5.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\synthetic_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\synthetic_test_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\synthetic_test_data_for_LLM.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\synthetic_train_data.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Datasets\synthetic\synthetic_train_data_for_LLM.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -241,104 +570,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\Ranked\ListNet\prompt_NA\rank_size_50\shot_NA\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\ListNet\prompt_NA\rank_size_50\shot_NA\ndcg.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_0\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_1\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_2\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_3\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_4\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\gpt-3.5-turbo\prompt_0\rank_size_50\shot_5\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\prompt_0\rank_size_50\shot_0\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\prompt_0\rank_size_50\shot_0\ndcg.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\prompt_0\rank_size_50\shot_1\metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\Ranked\meta-llama\Meta-Llama-3-8B-Instruct\prompt_0\rank_size_50\shot_1\ndcg.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\collated_metrics.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Results\LAW\collated_metrics_with_std.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\Results\LAW\collated_ndcg.csv">
           <value>
             <Attribute>
@@ -346,7 +577,28 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\Results\LAW\collated_ndcg_with_std.csv">
+        <entry key="\Results\bostonmarathon\collated_ndcg.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\dummy\collated_metrics.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Results\dummy\collated_ndcg.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\dummy.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -47,7 +47,7 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
     ranked_folder = os.listdir(path)
 
     # list all ranked_files in the directory (not groundtruth)
-    ranked_files = [f for f in ranked_folder if f.endswith('.csv') and 'ground_truth' not in f]
+    ranked_files = [f for f in ranked_folder if f.endswith('.csv') and 'ranked' in f]
 
     # get the ground truth file
     if 'ListNet' in exp_name:
@@ -82,7 +82,8 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
                 ranked_unique_ids = ranked_df["doc_id"].tolist()
             else:
                 # apply the feature_dict to the protected_feature column
-                ranked_df[protected_feature] = ranked_df[protected_feature].map(feature_dict)
+                if protected_feature != '':
+                    ranked_df[protected_feature] = ranked_df[protected_feature].map(feature_dict)
                 ground_truth_df = pd.read_csv(path + ground_truth_file)
                 ground_truth_df = ground_truth_df.sort_values(by=score_column, ascending=False)
                 run_number = file.split('_')[-1].split('.')[0]
@@ -96,19 +97,27 @@ def calculate_metrics_per_shot_llm(shot_path, shot='shot_0', exp_name=experiment
                     ranked_unique_ids = ranked_df["doc_id"].tolist()
 
             gt_unique_ids = ground_truth_df["doc_id"].tolist()
-            group_ids = ranked_df[protected_feature].tolist()
+            if protected_feature != '':
+                group_ids = ranked_df[protected_feature].tolist()
 
             # Convert items in the lists to ints
             gt_unique_ids = [int(id) for id in gt_unique_ids]
             ranked_unique_ids = [int(id) for id in ranked_unique_ids]
-            group_ids = [int(id) for id in group_ids]
+            if protected_feature != '':
+                group_ids = [int(id) for id in group_ids]
 
-            """ CALCULATE AND STORE METRICS"""
+            """ CALCULATE AND STORE FAIRNESS METRICS"""
             kT_corr = kendall_tau(gt_unique_ids, ranked_unique_ids)
-            ndkl = NDKL(np.array(gt_unique_ids), np.array(group_ids))
-            avg_exp = avgExp.avg_exp(np.array(ranked_unique_ids), np.array(group_ids))
-            exp_ratio = avg_exp[1] / avg_exp[0]
-            # print(gt_unique_ids, ranked_unique_ids)
+            if protected_feature != '':
+                ndkl = NDKL(np.array(gt_unique_ids), np.array(group_ids))
+                avg_exp = avgExp.avg_exp(np.array(ranked_unique_ids), np.array(group_ids))
+                exp_ratio = avg_exp[1] / avg_exp[0]
+                # print(gt_unique_ids, ranked_unique_ids)
+
+            else:
+                ndkl = ""
+                avg_exp =""
+                exp_ratio = ""
             writer.writerow([run_number, kT_corr[0], ndkl, exp_ratio])
 
             """ CALCULATE AND STORE NDCG"""

@@ -1,5 +1,6 @@
 # from data_analysis.calculate_metrics import kendall_tau
 import torch
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from hf_login import CheckLogin
@@ -71,7 +72,7 @@ def rank_with_llama(model_name, number_of_shots=0, size=5, neutral=False, prompt
         device = torch.device("cpu")
         print("CUDA is not available, exiting")
         exit()
-    #device_map = "auto"
+    # device_map = "auto"
 
     model = AutoModelForCausalLM.from_pretrained(model_name, device_map=device)
 
@@ -82,6 +83,16 @@ def rank_with_llama(model_name, number_of_shots=0, size=5, neutral=False, prompt
     item = create_items(df, number_of_shots, neutral, prompt_id)
     # (1) Create permutation generation instruction
     messages = create_permutation_instruction(item=item, rank_start=0, rank_end=size)
+    results_dir = Path(
+        f'../Datasets/{experiment_name}/Ranked/{model_name}/prompt_{prompt_id}/rank_size_{size}/shot_{number_of_shots}')
+
+    # Create the directory if it doesn't exist
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # save the messages to txt
+    with open(results_dir / 'messages.txt', 'w') as f:
+        for message in messages:
+            f.write(f"{message['role']}: {message['content']}\n")
     template_prompt_pred = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
     template_prompt_pred += '<|start_header_id|>prediction<|end_header_id|>\n\n'
     inputs_template_pred = tokenizer(template_prompt_pred, add_special_tokens=False, return_tensors='pt')
@@ -102,13 +113,24 @@ def rank_with_llama(model_name, number_of_shots=0, size=5, neutral=False, prompt
     return gt_df, merged_df
 
 
-def rank_with_GPT(model_name, number_of_shots=0, size=5, neutral=False, prompt_id=1):
+def rank_with_GPT(model_name, number_of_shots=0, size=20, neutral=False, prompt_id=1):
     # df = test_df.sample(n=rank_size, random_state=1)
     df = pd.read_csv(f"../Datasets/{experiment_name}/Tests/rank_size_{size}.csv")
     item = create_items(df, number_of_shots, neutral, prompt_id)
     # (1) Create permutation generation instruction
     messages = create_permutation_instruction(item=item, rank_start=0, rank_end=size)
     print('messages = ', messages)
+    # create directory for results based on n and model name
+    results_dir = Path(
+        f'../Datasets/{experiment_name}/Ranked/{model_name}/prompt_{prompt_id}/rank_size_{size}/shot_{number_of_shots}')
+
+    # Create the directory if it doesn't exist
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    # save the messages to txt
+    with open(results_dir / 'messages.txt', 'w') as f:
+        for message in messages:
+            f.write(f"{message['role']}: {message['content']}\n")
 
     # (2) Get ChatGPT predicted permutation
     permutation = run_llm(messages, api_key=api_key, model_name=model_name)
@@ -130,57 +152,101 @@ def extract_and_save_permutation(df, new_item, model_name, prompt_id, number_of_
 
     # order gt_df by score_column
     gt_df = df.sort_values(by=[score_column], ascending=False)
-    if experiment_name == 'LAW':
-        # rename unique_id to Student ID in gt_df
-        gt_df.rename(columns={'doc_id': 'Student ID'}, inplace=True)
+    # if experiment_name == 'LAW':
+    #     # rename unique_id to Student ID in gt_df
+    #     gt_df.rename(columns={'doc_id': 'Student ID'}, inplace=True)
 
-    if experiment_name == 'LAW':
-        #
-        # get gt scores from df
-        merged_df = pd.merge(ranked_df, gt_df[['Student ID', score_column]], on='Student ID', how='left')
+    # if experiment_name == 'LAW':
+    #     #
+    #     # get gt scores from df
+    #     merged_df = pd.merge(ranked_df, gt_df[['Student ID', score_column]], on='Student ID', how='left')
+    # else:
+    # if ID is in columns, rename as doc_id
+    if 'doc_id' in gt_df.columns:
+        ranked_df.rename(columns={'ID': 'doc_id'}, inplace=True)
+        ranked_df['doc_id'] = ranked_df['doc_id'].astype(str)
+        gt_df['doc_id'] = gt_df['doc_id'].astype(str)
+
+        merged_df = pd.merge(ranked_df, gt_df[['doc_id', score_column]], on='doc_id', how='left')
     else:
         merged_df = pd.merge(ranked_df, gt_df[['doc_id', score_column]], on='doc_id', how='left')
-
-    # create directory for results based on n and model name
-    results_dir = Path(
-        f'../Datasets/{experiment_name}/Ranked/{model_name}/prompt_{prompt_id}/rank_size_{size}/shot_{number_of_shots}')
-
-    # Create the directory if it doesn't exist
-    results_dir.mkdir(parents=True, exist_ok=True)
 
     # result = kendall_tau(gt_df['Student ID'].tolist(), ranked_df['Student ID'].tolist())
     return gt_df, merged_df
 
 
 # Define a function to extract information from the content string
+# def extract_info(content):
+#     if experiment_name == 'LAW':
+#         student_id = re.search(r'Student ID: (\d+)', content).group(1)
+#         gender = re.search(r'Gender: (\w+)', content).group(1)
+#         ugpa = re.search(r'UGPA: ([\d.]+)', content).group(1)
+#         lsat = re.search(r'LSAT: ([\d.]+)', content).group(1)
+#         return {
+#             'Student ID': int(float(student_id)),
+#             'Gender': gender,
+#             'UGPA': float(ugpa),
+#             'LSAT': float(lsat)
+#         }
+#     elif experiment_name == 'dummy':  # experiment_name == 'dummy':
+#         parts = content.split(',')
+#         doc_id = re.search(r'Unique ID: (\d+)', parts[0]).group(1)
+#         number = re.search(r'Number: ([\d.]+)', parts[1]).group(1)
+#         return {
+#             'doc_id': int(float(doc_id)),
+#             'Number': float(number)
+#         }
+#     elif experiment_name == 'bostonmarathon':
+#         parts = content.split(',')
+#         doc_id = re.search(r'Unique ID: (\d+)', parts[0]).group(1)
+#         gender = re.search(r'Gender: (\w+)', content).group(1)
+#         k_5 = re.search(r'5K: (\w+)', content).group(1)
+#         k_10 = re.search(r'10K: (\w+)', content).group(1)
+#         k_15 = re.search(r'15K: (\w+)', content).group(1)
+#         k_20 = re.search(r'20K: (\w+)', content).group(1)
+#         half = re.search(r'Half: (\w+)', content).group(1)
+#         k_30 = re.search(r'30K: (\w+)', content).group(1)
+#         return {
+#             'doc_id': int(float(doc_id)),
+#             'Gender': gender,
+#             '5K': k_5,
+#             '10K': k_10,
+#             '15K': k_15,
+#             '20K': k_20,
+#             'Half': half,
+#             '30K': k_30
+#         }
+
 def extract_info(content):
-    if experiment_name == 'LAW':
-        student_id = re.search(r'Student ID: (\d+)', content).group(1)
-        gender = re.search(r'Gender: (\w+)', content).group(1)
-        ugpa = re.search(r'UGPA: ([\d.]+)', content).group(1)
-        lsat = re.search(r'LSAT: ([\d.]+)', content).group(1)
-        return {
-            'Student ID': int(float(student_id)),
-            'Gender': gender,
-            'UGPA': float(ugpa),
-            'LSAT': float(lsat)
-        }
-    else:  # experiment_name == 'dummy':
-        parts = content.split(',')
-        doc_id = re.search(r'Unique ID: (\d+)', parts[0]).group(1)
-        number = re.search(r'Number: ([\d.]+)', parts[1]).group(1)
-        return {
-            'doc_id': int(float(doc_id)),
-            'Number': float(number)
-        }
+    # Dictionary to store extracted values
+    extracted_values = {}
+
+    # Pattern to match key-value pairs in the content
+    key_value_pattern = r'(\w+): ([\w.]+)'
+
+    # Extract all key-value pairs
+    matches = re.findall(key_value_pattern, content)
+
+    # Handle each key-value pair
+    for key, value in matches:
+        extracted_values[key] = value
+        # Convert to appropriate type if necessary
+        # if key in ['Student ID', 'Unique ID', 'doc_id']:
+        #     extracted_values[key] = int(float(value))
+        # elif key in ['UGPA', 'LSAT', 'Number']:
+        #     extracted_values[key] = float(value)
+        # else:
+        #     extracted_values[key] = float(value)
+    # print('extracted_values = ', extracted_values)
+
+    return extracted_values
 
 
 def create_items(df, number_of_shots=0, neutral=False, prompt_id=1):
     """creates items with format item = {
     'query': 'You are the admissions ranking system for a Law school; their goal is to rank a list of applicants to '
              'predict their success in the program. The school wants to rank the applicants using their UGPA score '
-             'and LSAT scores.  Without including explanations, rank the following applicants in a predicted order of '
-             'success in the program.',
+             'and LSAT scores. ',
     'hits': [
         {'content': 'Student ID: 18739 (Gender: female, UGPA: 3.7, LSAT: 44.0)'},
         {'content': 'Student ID: 8742 (Gender: male, UGPA: 3.2, LSAT: 20.0)'},
@@ -197,10 +263,10 @@ def create_items(df, number_of_shots=0, neutral=False, prompt_id=1):
             # Hardcoded query
             # if neutral is True, the query is neutral
             if neutral:  # prompt_id == 0:
-                query = (
-                    'You are the admissions ranking system for a Law school; their goal is to rank a list of '
-                    'applicants to predict their success in the program. Rank the following applicants in a predicted '
-                    'order of success in the program.')
+                query = 'Rank the following students in a predicted order of success in their law program'
+                # query = ( 'You are the admissions ranking system for a Law school; their goal is to rank a list of
+                # ' 'applicants to predict their success in the program. Rank the following applicants in a predicted
+                # ' 'order of success in the program.')
             else:
                 if prompt_id == 1:
                     query = (
@@ -212,8 +278,11 @@ def create_items(df, number_of_shots=0, neutral=False, prompt_id=1):
                     query = generate_base(prompt_id)
                     query = query + ' Rank the following applicants in a predicted order of success in the program:'
 
-        else:  # ranking dummy data
+        elif experiment_name == "dummy" or experiment_name == "synthetic":  # ranking dummy data
             query = 'You are a ranking system for a list of numbers. Rank the following numbers in descending order:'
+        elif experiment_name == "bostonmarathon":
+            query = ('You are a ranking system for a list of runners. Rank the following runners in descending order '
+                     'of their predicted finish time:')
     else:
         # note that the shot examples come from the training data
         query = prepare_template(df, s_shots, n_rank_size, neutral, prompt_id)
@@ -226,7 +295,7 @@ def create_items(df, number_of_shots=0, neutral=False, prompt_id=1):
             hits.append({'content': content})
     else:
         for index, row in df.iterrows():
-            content_parts = [f"Unique ID: {row['doc_id']}"]
+            content_parts = [f"doc_id: {row['doc_id']}"]
             for column in df.columns:
                 if column != 'doc_id':
                     content_parts.append(f"{column}: {row[column]}")
@@ -243,7 +312,7 @@ def create_items(df, number_of_shots=0, neutral=False, prompt_id=1):
 
 def prepare_template(df, shott, size=50, neutral=False, prompt_id=1):
     instruct_template = "Rank the following in descending order:"
-    if experiment_name != 'LAW':  # experiment_name == 'dummy':
+    if experiment_name == 'dummy' or experiment_name == 'synthetic':  # experiment_name == 'dummy':
         base_template = "You are a ranking system for a list of numbers. "
         instruct_template = "Rank the following numbers in descending order:"
     else:  # experiment_name == 'LAW':
@@ -251,6 +320,7 @@ def prepare_template(df, shott, size=50, neutral=False, prompt_id=1):
             base_template = ("You are the admissions ranking system for a Law school; their goal is to rank a list of "
                              "applicants to predict their success in the program. Rank the following applicants in a "
                              "predicted order of success in the program. ")
+            instruct_template = " Rank the following applicants in a predicted order of success in the program.:"
         elif prompt_id == 1:
             base_template = ("You are the admissions ranking system for a Law school; their goal is to rank a list of "
                              "applicants to predict their success in the program. The school wants to rank the "
@@ -270,8 +340,11 @@ def prepare_template(df, shott, size=50, neutral=False, prompt_id=1):
             if experiment_name == 'LAW':
                 shot_template += (pick_conjunction(i) + " example of ranked applicants in order of success in the "
                                                         "program is: ")
-            else:  # experiment_name == 'dummy':
+            elif experiment_name == 'dummy' or experiment_name == 'synthetic':  # experiment_name == 'dummy':
                 shot_template += (pick_conjunction(i) + " example of ranked numbers in descending order is: ")
+            elif experiment_name == 'bostonmarathon':
+                shot_template += (pick_conjunction(i) + " example of ranked runners in descending order of their "
+                                                        "predicted finish time is: ")
 
             shot_sample = pd.read_csv(
                 '../Datasets/' + experiment_name + '/Train/' + 'rank_size_' + str(size) + '_shot_' + str(
@@ -306,17 +379,23 @@ def row_converter(row):
     if experiment_name == 'LAW':
         return "Student ID: " + str(row['doc_id']) + " (" + str(row['Gender']) + ", UGPA: " + str(row['UGPA']) + (
             ",LSAT: ") + str(row['LSAT']) + ")"
+    elif experiment_name == 'bostonmarathon':  # experiment_name == 'dummy':
+        return "Unique ID: " + str(row['doc_id']) + " (" + str(row['Gender']) + ", Age: " + str(row['Age']) + (
+            ",5K: ") + " (" + str(row['5K']) + ", 10K: " + str(row['10K']) + ", 15K: " + str(
+            row['15K']) + ", 20K: " + str(row['20K']) + ", Half: " + str(row['Half']) + (
+            ",30K: ") + str(row['30K']) + ")"
     else:
-        create_content(row)
+        return create_content(row)
 
 
 def create_content(row):
-    content_parts = [f"Unique ID: {row['doc_id']}"]
+    # content_parts = [f"Unique ID: {row['doc_id']}"]
+    content_parts = []
     for column in row.index:
         if column != 'doc_id':
             content_parts.append(f"{column}: {row[column]}")
     content = ", ".join(content_parts)
-    return {'content': content}
+    return content
 
 
 def generate_base(prompt_id):  # hardcoded for now. Considering having multiple queries
@@ -337,14 +416,17 @@ def generate_base(prompt_id):  # hardcoded for now. Considering having multiple 
 # RankWithGPT("gpt-3.5-turbo", 1, 1)
 
 # rank_with_llama("meta-llama/Meta-Llama-3-8B-Instruct", 0, 5)
-# prmpt_ids = [0, 1]
-# for prmpt_id in prmpt_ids:
-#     for shot in shots:
-#         RankWithLLM("gpt-3.5-turbo", shot, 5, 50, prompt_id=prmpt_id)
-prmpt_ids = [1]
+
+
+prmpt_ids = [0]
 for prmpt_id in prmpt_ids:
     for shot in shots:
-        RankWithLLM("meta-llama/Meta-Llama-3-8B-Instruct", shot, 5, 50, prompt_id=prmpt_id)
+        RankWithLLM("gpt-3.5-turbo", shot, 1, 20, prompt_id=prmpt_id)
+# prmpt_ids = [0]
+# for prmpt_id in prmpt_ids:
+#     for shot in shots:
+#         print(os.getcwd())
+#         RankWithLLM("meta-llama/Meta-Llama-3-8B-Instruct", shot, 2, 20, prompt_id=prmpt_id)
 
 # for shot in shots:
 #     RankWithLLM("meta-llama/Meta-Llama-3-8B-Instruct", shot, 5, 50)

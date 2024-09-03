@@ -194,6 +194,7 @@ def collate_metrics(metric_file, prompt, shot, size, experiment):
         output_df.loc['Kendall Tau', col_name] = kT_mean
         output_df.loc['NDKL', col_name] = NDKL_mean
         output_df.loc['Average Exposure', col_name] = avg_Exp_mean
+        output_df_with_std[col_name] = output_df_with_std[col_name].astype('object')
 
         output_df_with_std.loc['Kendall Tau', col_name] = f"{kT_mean:.2f} ± {kT_std:.2f}"
         output_df_with_std.loc['NDKL', col_name] = f"{NDKL_mean:.2f} ± {NDKL_std:.2f}"
@@ -207,11 +208,48 @@ def collate_metrics(metric_file, prompt, shot, size, experiment):
         output_df.to_csv(output_file, index=True)
 
 
-def plot_ndcgs():
+# Function to extract numerical part from column names
+def extract_number(col_name):
+    parts = re.split(r'[_\n]', col_name)
+    if 'ListNet' in parts:
+        return 0
+    return int(parts[2])
+
+
+def plot_ndcgs(zero_only=False, non_zero_only=False):
     write_folder = Path(f"../Plots/{experiment_name}")
+
+    collated_data = pd.read_csv(f'../Results/{experiment_name}/collated_ndcg.csv')
+    # move columns containing shot_10 to the end before columns containing ListNet
+
+    # print(collated_data.columns)
+    # print(collated_data[
+    #           [col for col in collated_data.columns if 'shot_10' not in col and 'size_200' not in col]].columns)
+    # print(collated_data[[col for col in collated_data.columns if 'shot_10' in col]].columns)
+    # print(collated_data[[col for col in collated_data.columns if 'ListNet' in col]].columns)
+    #
+    # collated_data = pd.concat([
+    #     collated_data[[col for col in collated_data.columns if 'shot_10' not in col and 'ListNet' not in col]],
+    #     collated_data[[col for col in collated_data.columns if 'shot_10' in col]],
+    #     collated_data[[col for col in collated_data.columns if 'ListNet' in col]]
+    # ], axis=1)
+
+    if zero_only:
+        # add Listnet columns and columns with shot_0
+        collated_data = collated_data.loc[:,
+                        collated_data.columns.str.contains('ListNet') | collated_data.columns.str.contains('shot_0')]
+        write_folder = write_folder / 'zero_only'
+
+    if non_zero_only:
+        # add Listnet columns and columns without shot_0
+        collated_data = collated_data.loc[:,
+                        collated_data.columns.str.contains('ListNet') | ~collated_data.columns.str.contains('shot_0')]
+        write_folder = write_folder / 'non_zero_only'
+
     if not os.path.exists(write_folder):
         os.makedirs(write_folder)
-    collated_data = pd.read_csv(f'../Results/{experiment_name}/collated_ndcg.csv')
+
+    #sorted_columns = sorted(collated_data.columns, key=extract_number)
 
     # Determine which columns contain 'gpt' and 'llama'
     gpt_columns_0 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_0' in col.lower()]
@@ -219,10 +257,17 @@ def plot_ndcgs():
     gpt_columns_1 = [col for col in collated_data.columns if 'gpt' in col.lower() and 'prompt_1' in col.lower()]
     llama_columns_1 = [col for col in collated_data.columns if 'llama' in col.lower() and 'prompt_1' in col.lower()]
 
+    if experiment_name == 'dummy' or experiment_name == 'synthetic':
+        gpt_columns_0 = [col for col in collated_data.columns if 'gpt' in col.lower()]
+        llama_columns_0 = [col for col in collated_data.columns if 'llama' in col.lower()]
+        # gpt_columns_1 = [col for col in sorted_columns if 'gpt' in col.lower()]
+        # llama_columns_1 = [col for col in sorted_columns if 'llama' in col.lower()]
+
     for idx, row in collated_data.iterrows():
         fig, ax = plt.subplots(figsize=(12, 8))
 
         # Plot each column individually with specified colors
+        # for col in collated_data.columns:
         for col in collated_data.columns:
             if col in gpt_columns_0:
                 color = '#F00000'
@@ -236,6 +281,14 @@ def plot_ndcgs():
                 color = '#FFC725'
 
             ax.bar(col, row[col], color=color)
+            # add the integer value on top of the bar and make it vertical
+            ax.text(col, row[col], f'{row[col]:.2f}', ha='center', va='bottom', rotation='vertical')
+
+            # ax.bar(col, row[col], color=color)
+
+            # ax.text(col, row[col], f'{row[col]}', ha='center', va='bottom')
+
+            # ax.text(col, row[col], f'{row[col]:.2f}', ha='center', va='bottom')
 
         # Set the title and labels
         plt.title(f'NDCG at {idx + 1} for each model, {experiment_name}')
@@ -243,6 +296,7 @@ def plot_ndcgs():
         plt.ylabel('NDCG')
         plt.tight_layout()
         # new labels
+        ax.set_xticks(range(len(collated_data.columns)))
         ax.set_xticklabels([get_label(col) for col in collated_data.columns])
         plt.xticks(rotation=90, ha='center')
         # Save the plot as a PDF file with the specified naming convention
@@ -269,23 +323,29 @@ def plot_legend():
     lw = 1
     markersize = 8
 
-    legend_items = [patches.Rectangle((0, 0), 1, 1, edgecolor='#F00000', facecolor='#F00000', linewidth=2, linestyle='-',
-                                      label='gpt-3.5-turbo, neutral'),
-                    patches.Rectangle((0, 0), 1, 1, edgecolor='pink', facecolor='pink', linewidth=2,
-                                      linestyle='-',
-                                      label='gpt-3.5-turbo, sensitive'),
+    legend_items = [
+        # patches.Rectangle((0, 0), 1, 1, edgecolor='#F00000', facecolor='#F00000', linewidth=2, linestyle='-',
+        #                   label='gpt-3.5-turbo, neutral'),
+        patches.Rectangle((0, 0), 1, 1, edgecolor='#F00000', facecolor='#F00000', linewidth=2, linestyle='-',
+                          label='gpt-3.5-turbo'),
+        # patches.Rectangle((0, 0), 1, 1, edgecolor='pink', facecolor='pink', linewidth=2,
+        #                   linestyle='-',
+        #                   label='gpt-3.5-turbo, sensitive'),
 
-                    patches.Rectangle((0, 0), 1, 1, edgecolor='#3D6D9E', facecolor='#3D6D9E', linewidth=2,
-                                      linestyle='-',
-                                      label='meta-llama/Meta-Llama-3-8B-Instruct, neutral'),
+        # patches.Rectangle((0, 0), 1, 1, edgecolor='#3D6D9E', facecolor='#3D6D9E', linewidth=2,
+        #                   linestyle='-',
+        #                   label='meta-llama/Meta-Llama-3-8B-Instruct, neutral'),
+        patches.Rectangle((0, 0), 1, 1, edgecolor='#FFC725', facecolor='#FFC725', linewidth=2,
+                          linestyle='-',
+                          label='ListNet'),
+        patches.Rectangle((0, 0), 1, 1, edgecolor='#3D6D9E', facecolor='#3D6D9E', linewidth=2,
+                          linestyle='-',
+                          label='Meta-Llama-3-8B-Instruct'),
+        #
+        # # patches.Rectangle((0, 0), 1, 1, edgecolor='skyblue', facecolor='skyblue', linewidth=2,
+        # #                   linestyle='-',
+        # #                   label='meta-llama/Meta-Llama-3-8B-Instruct, sensitive'),
 
-
-                    patches.Rectangle((0, 0), 1, 1, edgecolor='skyblue', facecolor='skyblue', linewidth=2,
-                                      linestyle='-',
-                                      label='meta-llama/Meta-Llama-3-8B-Instruct, sensitive'),
-                    patches.Rectangle((0, 0), 1, 1, edgecolor='#FFC725', facecolor='#FFC725', linewidth=2,
-                                      linestyle='-',
-                                      label='ListNet')
 
     ]
     # plt.text(-0.05, 0.47, 'Legend', fontsize=10, weight='bold')
@@ -335,7 +395,13 @@ def plot_metrics():
     plt.xlabel('LLM shots and LTR training sizes')
     plt.ylabel('Kendall Tau')
     plt.tight_layout()
+    ax.set_xticks(range(len(collated_data.columns)))
     ax.set_xticklabels([get_label(col) for col in collated_data.columns])
+
+    for i, col in enumerate(collated_data.columns):
+        y_value = collated_data[col].values[0]  # Adjust if the values aren't in the first row
+        plt.text(i, y_value, f'{y_value:.2f}', ha='center', va='bottom', rotation='vertical')
+
     plt.xticks(rotation=90, ha='center')
     plt.savefig(write_folder / f'Kendall_Tau_Bar_Chart.png', bbox_inches='tight')
     plt.close()
@@ -359,8 +425,9 @@ def plot_metrics():
     plt.xlabel('LLM shots and LTR training sizes')
     plt.ylabel('NDKL')
     plt.tight_layout()
-
+    ax.set_xticks(range(len(collated_data.columns)))
     ax.set_xticklabels([get_label(col) for col in collated_data.columns])
+
     plt.xticks(rotation=90, ha='center')
     plt.savefig(write_folder / f'NDKL_Bar_Chart.png', bbox_inches='tight')
     ax.legend()
@@ -384,6 +451,7 @@ def plot_metrics():
     plt.xlabel('LLM shots and LTR training sizes')
     plt.ylabel('Average Exposure')
     plt.tight_layout()
+    ax.set_xticks(range(len(collated_data.columns)))
     ax.set_xticklabels([get_label(col) for col in collated_data.columns])
     plt.xticks(rotation=90, ha='center')
     plt.savefig(write_folder / f'Average_Exposure_Bar_Chart.png', bbox_inches='tight')
@@ -463,7 +531,7 @@ def get_label(column_name):
         if 'NDCG' in column_name:
             return (column_name.split('\n')[0]).split('NDCG_')[1]
         else:
-            return 'train_size_'+ str(column_name.split('\n')[0])
+            return 'train_size_' + str(column_name.split('\n')[0])
 
 
 def PlotLoss():
@@ -527,13 +595,16 @@ def plot_gt_graphs():
     return
 
 
-#PlotNCollate()
-#plot_ndcgs()
-#plot_legend()
-#plot_ndcg_across()
-#plot_metrics()
+PlotNCollate()
+plot_ndcgs()
+plot_legend()
+plot_ndcg_across()
+plot_metrics()
 #plot_gt_graphs()
 
 #PlotLoss()
 
+plot_ndcgs(zero_only=False, non_zero_only=True)
+plot_ndcgs(zero_only=True, non_zero_only=False)
+#
 end = time.time()
