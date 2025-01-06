@@ -23,21 +23,31 @@ else:
     data = pd.read_csv(f'../{experiment_name}.csv')
 # read xlsx data
 if experiment_name == 'LAW':
-    data = pd.read_excel('../LAW.xlsx')
+    # data = pd.read_excel('../LAW.xlsx')
     # rename sex to Gender and replace 2 with 0
     gender_dict = {2: 0, 1: 1}
     data['Gender'] = data['sex'].replace(gender_dict)
+if experiment_name == 'COMPASSEX':
+    gender_dict = {'M': 1, 'F': 0}
+    data['Gender'] = data['Gender'].replace(gender_dict)
+if experiment_name == 'NBAWNBA':
+    gender_dict = {'M': 0, 'F': 1}
+    data['Gender'] = data['Gender'].replace(gender_dict)
 
 # create doc_id to start from 1 instead of 0
-data['doc_id'] = data.index + 1
+# if doc_id column is not present, create it
+if 'doc_id' not in data.columns:
+    data['doc_id'] = (data.index + 1).astype(int)
 seed = 43
-
 
 # select relevant columns
 if protected_feature != '':
     gt_data = data[['doc_id', protected_feature]].copy()
+    # ensure data['doc_id'] is integer
 else:
     gt_data = data[['doc_id']].copy()
+gt_data = gt_data.dropna(subset=['doc_id'])
+gt_data['doc_id'] = gt_data['doc_id'].astype(int)
 for column in additional_columns:
     gt_data.loc[:, column] = data[column]
 gt_data.loc[:, score_column] = data[score_column]
@@ -57,7 +67,7 @@ gt_data.to_csv(str(data_path) + f"/{experiment_name}_data.csv", index=False)
 # split data into  20% test and 80% train using sklearn test_train_split
 test_data, train_data = train_test_split(gt_data, test_size=0.2, random_state=seed, shuffle=True)
 
-# sort test and train data based on ZFYA column
+# sort test and train data based on score column
 test_data = test_data.sort_values(by=score_column, ascending=False)
 train_data = train_data.sort_values(by=score_column, ascending=False)
 

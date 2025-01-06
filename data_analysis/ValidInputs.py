@@ -36,7 +36,7 @@ def check_all_nparrays(arrays):
 
 def check_all_integers(arrays):
     for i in arrays:
-        if np.any(i % i.astype(int) != 0):
+        if np.any(i.astype(int) != 0) and np.any(i[i != 0] % i[i != 0].astype(int) != 0):
             raise Exception("Arrays must only contain of integers data type")
 
 
@@ -111,7 +111,18 @@ OFFSET = 1E-6
 
 
 def prob(a, b):
-    return ((b == a).sum()) / len(b)
+    # Ensure b is not empty
+    if len(b) == 0:
+        return 0  # Return 0 to avoid division by zero
+
+    # Count how many elements in b are equal to a
+    count = (b == a).sum()
+
+    # Avoid division by zero if there are no matching elements in b
+    if len(b) == 0:
+        return 0  # Return 0 to avoid division by zero
+
+    return count / len(b)
 
 
 def Z_Vector(k):

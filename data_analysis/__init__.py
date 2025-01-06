@@ -3,3 +3,4 @@ from .kendallTau import *
 from .ValidInputs import *
 from .NDKL import *
 from .avgExp import *
+from .skew import *

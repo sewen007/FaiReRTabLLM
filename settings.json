@@ -1,0 +1,28 @@
+{
+  "GENERAL_SETTINGS": {
+    "rank_sizes": [
+      20
+    ],
+    "shots": [0, 1, 2, 3, 4]
+  },
+  "READ_FILE_SETTINGS": {
+    "PATH": "./LLMFairRank/COMPASSEX.csv",
+    "ITEM": "offender",
+    "GENDER_EXPERIMENT": "True",
+    "RACE_EXPERIMENT": "False",
+    "PROTECTED_FEATURE": "Gender",
+    "DADV_GROUP": "male",
+    "ADV_GROUP": "female",
+    "SCORE_COL": "score",
+    "ADDITIONAL_COLUMNS": [
+
+    ]
+  },
+  "TRAINING_SETTINGS": {
+    "MODEL": "LISTNET",
+    "HYPERPARAMETERS": {
+      "NUM_ITERATIONS": 1500,
+      "LR": 0.01
+    }
+  }
+}

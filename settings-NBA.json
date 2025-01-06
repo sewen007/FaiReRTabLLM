@@ -1,0 +1,28 @@
+{
+  "GENERAL_SETTINGS": {
+    "rank_sizes": [
+      20
+    ],
+    "shots": [0, 1, 2, 3, 4]
+  },
+  "READ_FILE_SETTINGS": {
+    "PATH": "./LLMFairRank/NBAWNBA.csv",
+    "ITEM": "player",
+    "GENDER_EXPERIMENT": "True",
+    "RACE_EXPERIMENT": "False",
+    "PROTECTED_FEATURE": "Gender",
+    "DADV_GROUP": "female",
+    "ADV_GROUP": "male",
+    "SCORE_COL": "Career Points",
+    "ADDITIONAL_COLUMNS": [
+
+    ]
+  },
+  "TRAINING_SETTINGS": {
+    "MODEL": "LISTNET",
+    "HYPERPARAMETERS": {
+      "NUM_ITERATIONS": 3000,
+      "LR": 0.01
+    }
+  }
+}
