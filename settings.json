@@ -6,14 +6,14 @@
     "shots": [0, 1, 2, 3, 4]
   },
   "READ_FILE_SETTINGS": {
-    "PATH": "./LLMFairRank/COMPASSEX.csv",
-    "ITEM": "offender",
+    "PATH": "./LLMFairRank/LOAN.csv",
+    "ITEM": "applicant",
     "GENDER_EXPERIMENT": "True",
     "RACE_EXPERIMENT": "False",
     "PROTECTED_FEATURE": "Gender",
-    "DADV_GROUP": "male",
-    "ADV_GROUP": "female",
-    "SCORE_COL": "score",
+    "DADV_GROUP": "female",
+    "ADV_GROUP": "male",
+    "SCORE_COL": "ApplicantIncome",
     "ADDITIONAL_COLUMNS": [
 
     ]
@@ -21,7 +21,7 @@
   "TRAINING_SETTINGS": {
     "MODEL": "LISTNET",
     "HYPERPARAMETERS": {
-      "NUM_ITERATIONS": 1500,
+      "NUM_ITERATIONS": 3000,
       "LR": 0.01
     }
   }
