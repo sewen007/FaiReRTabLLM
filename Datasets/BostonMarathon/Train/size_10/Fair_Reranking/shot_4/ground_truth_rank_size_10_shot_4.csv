@@ -1,0 +1,11 @@
+,doc_id,Gender,predictions,GT_score,Gender.1
+0,1098,male,0.86351,0.86351,male
+1,2025,male,0.84128,0.84128,male
+2,3619,female,0.81312,0.81312,female
+3,5790,male,0.78305,0.78305,male
+4,7636,female,0.76282,0.76282,female
+5,8276,female,0.75594,0.75594,female
+6,14488,female,0.69479,0.69479,female
+7,15327,male,0.68648,0.68648,male
+8,15603,female,0.68361,0.68361,female
+9,24923,male,0.46111,0.46111,male

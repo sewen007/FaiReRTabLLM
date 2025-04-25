@@ -1,0 +1,8 @@
+,"shot_NAD
+rank_size_20
+prompt_NAD
+DetConstSort"
+Kendall Tau,0.7252631578947368
+NDKL,0.16423732259469281
+Average Exposure,1.0208084824052384
+AveExpR CI-95,0.0540651577687474

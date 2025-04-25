@@ -1,8 +1,10 @@
+import os
+
 from huggingface_hub import login, HfApi
 
 # Login to hugging face
 
-token = "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"
+token = os.getenv("hf_token")
 
 
 def CheckLogin():

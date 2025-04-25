@@ -1,7 +1,7 @@
 {
   "GENERAL_SETTINGS": {
     "rank_sizes": [
-      20
+      50
     ],
     "shots": [0, 1, 2, 3, 4]
   },

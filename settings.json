@@ -1,19 +1,19 @@
 {
   "GENERAL_SETTINGS": {
     "rank_sizes": [
-      20
+      50
     ],
-    "shots": [0, 1, 2, 3, 4]
+    "shots": [0]
   },
   "READ_FILE_SETTINGS": {
-    "PATH": "./LLMFairRank/LOAN.csv",
-    "ITEM": "applicant",
+    "PATH": "./LLMFairRank/BostonMarathon.csv",
+    "ITEM": "runner",
     "GENDER_EXPERIMENT": "True",
     "RACE_EXPERIMENT": "False",
     "PROTECTED_FEATURE": "Gender",
     "DADV_GROUP": "female",
     "ADV_GROUP": "male",
-    "SCORE_COL": "ApplicantIncome",
+    "SCORE_COL": "score",
     "ADDITIONAL_COLUMNS": [
 
     ]
@@ -21,7 +21,7 @@
   "TRAINING_SETTINGS": {
     "MODEL": "LISTNET",
     "HYPERPARAMETERS": {
-      "NUM_ITERATIONS": 3000,
+      "NUM_ITERATIONS": 1500,
       "LR": 0.01
     }
   }
