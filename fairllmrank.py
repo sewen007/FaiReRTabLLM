@@ -16,14 +16,14 @@ meta_app = 'Meta-Llama-3-8B-Instruct'
 
 
 ################################################################
-# 1. Clean the data. Uncomment the line below to clean the data
+# Step 1. Clean the data. Uncomment the line below to clean the data
 #Clean()
 #################################################################
-# 2. Prepare data. Uncomment the lines below to prepare the data
+# Step 2. Prepare data. Uncomment the lines below to prepare the data
 # for size in sizes:
 #     Prep(size)
 #############################################################################################
-#3. Rank the data with LLMs. Uncomment the lines below to rank the data using the LLMs
+#Step 3. Rank the data with LLMs. Uncomment the lines below to rank the data using the LLMs
 # for size in sizes:
 #     RankWithLLM_Llama("meta-llama/Meta-Llama-3-8B-Instruct", size=size, post_process=False)
 #     Prep(size=size)
@@ -35,7 +35,7 @@ meta_app = 'Meta-Llama-3-8B-Instruct'
 #                 RankWithLLM("gemini-1.5-pro", shot, size, prompt_id=prmpt_id, ltr_ranked=option, post_process=True)
 #                 RankWithLLM("gemini-1.5-flash", shot, size, prompt_id=prmpt_id, ltr_ranked=option, post_process=True)
 ########################################################################################################################
-#4. Calculate metric results and plot results. Uncomment the lines below to calculate the metrics and plot the results
+#Step 4. Calculate metric results and plot results. Uncomment the lines below to calculate the metrics and plot the results
 # for size in sizes:
 #     CalculateResultMetrics(meta_exp, size=size)
 #     # # # # # # # # # #
