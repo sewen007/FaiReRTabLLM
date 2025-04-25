@@ -478,12 +478,12 @@ def Prep(size):
 
     number = 10
     print('size:', size)
-    # if size == full_size:
-    #     print('Size is full size')
-    #     number = 1
-    # else:
-    #     for shot in shots:
-    #         prep_LLM_data(size, shot, create_fair_data_for_reranking=True)
+    if size == full_size:
+        print('Size is full size')
+        number = 1
+    else:
+        for shot in shots:
+            prep_LLM_data(size, shot, create_fair_data_for_reranking=True)
     print('Done creatting shots')
     print('size:', size)
     create_test_data_for_reranking(size=size, number=number, equal_distribution=True)
